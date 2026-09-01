@@ -15,23 +15,23 @@
 | PRE-001 | Activated Registrar and default Market Version 1 | `PASSED` |
 | PRE-002 | User address is an EOA with Testnet ETH | `PASSED` |
 | PRE-003 | At least 20,000 Test USDC | `PASSED` after funding transaction |
-| PRE-004 | Local signer derives exactly to the user EOA | `BLOCKED` — signer not available locally |
-| PRE-005 | Explicit broadcast confirmation | `BLOCKED` until PRE-004 is resolved |
+| PRE-004 | Local signer derives exactly to the user EOA | `PASSED` |
+| PRE-005 | Explicit broadcast confirmation | `PASSED` |
 
 ## User-path cases
 
 | Case | Category | Action | Expected result | Current state |
 | --- | --- | --- | --- | --- |
-| E2E-CREATE-001 | Approval | Approve exactly 5 Test USDC to Factory | Allowance succeeds; no Token leaves account | `BLOCKED` |
-| E2E-CREATE-002 | Contest | Create deterministic V1 Contest | One MarketVault and two SideToken Clones registered with permanent bindings | `BLOCKED` |
-| E2E-CREATE-003 | Creation fee | Inspect balances and events | Exactly 5 Test USDC reaches Team Treasury; Factory and Registry retain zero | `BLOCKED` |
-| E2E-TRADE-001 | BUY | BUY Side A with 10,000 Test USDC and 0.5% minimum-output tolerance | Quote, receipt, minted balance, Reserve and Supply agree | `BLOCKED` |
-| E2E-TRADE-002 | FLIP | Atomically FLIP 25% of Side A to Side B | One atomic transaction and one Trading Fee only | `BLOCKED` |
-| E2E-TRADE-003 | SELL | SELL half of Side B | Net Test USDC, burn, Reserve and fee ledger agree | `BLOCKED` |
-| E2E-TRADE-004 | SELL ALL | Exit remaining Side B and Side A | Both user SideToken balances become zero; Reserve remains solvent | `BLOCKED` |
-| E2E-FEE-001 | Fee split | Reconcile every trade | Protocol/Creator/Referrer equals 70/20/10 with integer dust to Protocol | `BLOCKED` |
-| E2E-FEE-002 | Claims | Claim Creator and Referrer credits | Credits clear and Test USDC reaches the exact beneficiaries | `BLOCKED` |
-| E2E-SAFE-001 | Solvency | Inspect final balances | Market balance covers Reserve; FeeVault balance covers total liability | `BLOCKED` |
+| E2E-CREATE-001 | Approval | Approve exactly 5 Test USDC to Factory | Allowance succeeds; no Token leaves account | `PASSED` |
+| E2E-CREATE-002 | Contest | Create deterministic V1 Contest | One MarketVault and two SideToken Clones registered with permanent bindings | `PASSED` |
+| E2E-CREATE-003 | Creation fee | Inspect balances and events | Exactly 5 Test USDC reaches Team Treasury; Factory and Registry retain zero | `PASSED` |
+| E2E-TRADE-001 | BUY | BUY Side A with 10,000 Test USDC and 0.5% minimum-output tolerance | Quote, receipt, minted balance, Reserve and Supply agree | `PASSED` |
+| E2E-TRADE-002 | FLIP | Atomically FLIP 25% of Side A to Side B | One atomic transaction and one Trading Fee only | `PASSED` |
+| E2E-TRADE-003 | SELL | SELL half of Side B | Net Test USDC, burn, Reserve and fee ledger agree | `PASSED` |
+| E2E-TRADE-004 | SELL ALL | Exit remaining Side B and Side A | Both user SideToken balances become zero; Reserve remains solvent | `PASSED` |
+| E2E-FEE-001 | Fee split | Reconcile every trade | Protocol/Creator/Referrer equals 70/20/10 with integer dust to Protocol | `PASSED` |
+| E2E-FEE-002 | Claims | Claim Creator and Referrer credits | Credits clear and Test USDC reaches the exact beneficiaries | `PASSED` |
+| E2E-SAFE-001 | Solvency | Inspect final balances | Market balance covers Reserve; FeeVault balance covers total liability | `PASSED` |
 
 ## Negative and governance cases deferred to later rounds
 

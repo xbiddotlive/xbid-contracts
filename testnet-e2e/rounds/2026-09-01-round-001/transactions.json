@@ -1,19 +1,131 @@
 {
   "schemaVersion": 1,
   "roundId": "2026-09-01-round-001",
+  "executionStatus": "ALL_RECEIPTS_SUCCESS",
+  "executionWindow": {
+    "firstBlock": 111376571,
+    "lastBlock": 111376771,
+    "startedAt": 1788302214,
+    "finishedAt": 1788302244
+  },
   "transactions": [
     {
       "caseId": "PRE-003",
-      "purpose": "Fund the locked E2E account with 100,000 permissionlessly mintable Test USDC",
+      "purpose": "Fund the E2E account with 100,000 permissionlessly mintable Test USDC",
       "transactionHash": "0xf12e5ea1833c7c7a7e2db7752f3868f82b7140799fd3d67944fa351ed58956f6",
       "blockNumber": 111181140,
-      "timestamp": 1788272762,
-      "from": "0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91",
-      "to": "0xAc80194dc1aE8eF52df73e7e1864fB3C62290fe0",
       "status": 1,
-      "gasUsed": 57363,
-      "mintRecipient": "0x22b12cbad5a3ea288feb71df4cf52e4f08529cbc",
-      "mintUnits": "100000000000"
+      "gasUsed": 57363
+    },
+    {
+      "caseId": "E2E-CREATE-001",
+      "purpose": "Approve the exact 5 Test USDC Creation Fee",
+      "transactionHash": "0x2b23714947d6bb8dafade672c406610e906d65850cbf3f612c317308a2ceb752",
+      "blockNumber": 111376571,
+      "status": 1,
+      "gasUsed": 51779,
+      "logCount": 1
+    },
+    {
+      "caseId": "E2E-CREATE-002/E2E-CREATE-003",
+      "purpose": "Create the deterministic V1 Contest and pay Team Treasury",
+      "transactionHash": "0x44b8632ae414ce69e24a67ed7822ef7b93af89f286a36f0fdc17c790d550ad19",
+      "blockNumber": 111376591,
+      "status": 1,
+      "gasUsed": 928283,
+      "logCount": 9
+    },
+    {
+      "caseId": "E2E-TRADE-001-APPROVAL",
+      "purpose": "Approve 10,000 Test USDC to the MarketVault",
+      "transactionHash": "0xbd97373bcf34c768e14f2ab1c2b7e8ed8583c555f63bfb92755764a2ff372746",
+      "blockNumber": 111376600,
+      "status": 1,
+      "gasUsed": 51791,
+      "logCount": 1
+    },
+    {
+      "caseId": "E2E-TRADE-001",
+      "purpose": "BUY Side A",
+      "transactionHash": "0x97ae5f86763c5bb8da1edf97edf3f197a0740c4cd56cdadf52bd65740c4e0aab",
+      "blockNumber": 111376621,
+      "status": 1,
+      "gasUsed": 438372,
+      "logCount": 8
+    },
+    {
+      "caseId": "E2E-TRADE-002-APPROVAL",
+      "purpose": "Approve Side A to the MarketVault",
+      "transactionHash": "0x96e89780c6050aa2203b56456e788bcb135470e89b64cb36db1bfe44166dd195",
+      "blockNumber": 111376639,
+      "status": 1,
+      "gasUsed": 54601,
+      "logCount": 1
+    },
+    {
+      "caseId": "E2E-TRADE-002",
+      "purpose": "Atomically FLIP 25% of Side A to Side B with one fee",
+      "transactionHash": "0xab0db66e8a466c5896b1dd7ec8fd53e1022948ca30abc99acf4e503109452dfa",
+      "blockNumber": 111376661,
+      "status": 1,
+      "gasUsed": 288767,
+      "logCount": 7
+    },
+    {
+      "caseId": "E2E-TRADE-003-APPROVAL",
+      "purpose": "Approve Side B to the MarketVault",
+      "transactionHash": "0x2291a91f5dae30f3443f63be2d0d3e26546eb5e0dce8fddb0b7180aca47834c8",
+      "blockNumber": 111376673,
+      "status": 1,
+      "gasUsed": 54601,
+      "logCount": 1
+    },
+    {
+      "caseId": "E2E-TRADE-003",
+      "purpose": "SELL half of Side B",
+      "transactionHash": "0xde3f4f3bec6b364fa3360850f994f7c6b198db6510b81e662a125e5a90b1575d",
+      "blockNumber": 111376699,
+      "status": 1,
+      "gasUsed": 215093,
+      "logCount": 7
+    },
+    {
+      "caseId": "E2E-TRADE-004-B",
+      "purpose": "SELL ALL remaining Side B",
+      "transactionHash": "0x5fd2324174a34cb3067fb4a353804c2b5b5ba18a0498bd42d14de43d7a0c5c35",
+      "blockNumber": 111376718,
+      "status": 1,
+      "gasUsed": 202077,
+      "logCount": 7
+    },
+    {
+      "caseId": "E2E-TRADE-004-A",
+      "purpose": "SELL ALL remaining Side A",
+      "transactionHash": "0x40fbae88426b470e76355558f80fdad23dd33568f5ced01d75c6c1442df81253",
+      "blockNumber": 111376738,
+      "status": 1,
+      "gasUsed": 192635,
+      "logCount": 7
+    },
+    {
+      "caseId": "E2E-FEE-002-CREATOR",
+      "purpose": "Claim Creator trading fees",
+      "transactionHash": "0x289d618fd9d04d2706a51c3780c919fc25eb60e2f66af46d343b84296a97d3ed",
+      "blockNumber": 111376749,
+      "status": 1,
+      "gasUsed": 81684,
+      "logCount": 2
+    },
+    {
+      "caseId": "E2E-FEE-002-REFERRER",
+      "purpose": "Permissionlessly claim Referrer fees to the Referrer",
+      "transactionHash": "0x969fa51e8c848b7af3d467f44a8f656ba990e9c6791e288295854010827aa673",
+      "blockNumber": 111376771,
+      "status": 1,
+      "gasUsed": 75611,
+      "logCount": 2
     }
-  ]
+  ],
+  "totalUserTransactions": 12,
+  "totalUserGasUsed": 2635294
 }

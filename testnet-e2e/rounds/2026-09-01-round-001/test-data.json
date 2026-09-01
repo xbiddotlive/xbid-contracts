@@ -1,20 +1,28 @@
 {
   "schemaVersion": 1,
   "roundId": "2026-09-01-round-001",
-  "status": "BLOCKED_AWAITING_ACCOUNT_SIGNER",
+  "status": "PASSED_USER_PATH",
   "network": {
     "name": "Robinhood Chain Testnet",
     "chainId": 46630,
-    "preflightBlock": 111181599
+    "fundingPreflightBlock": 111181599,
+    "firstExecutionBlock": 111376571,
+    "lastExecutionBlock": 111376771,
+    "executionStartedAt": 1788302214,
+    "executionFinishedAt": 1788302244
   },
   "account": {
-    "address": "0x22b12cbad5a3ea288feb71df4cf52e4f08529cbc",
+    "address": "0x22B12Cbad5a3EA288fEB71Df4Cf52E4F08529cbc",
     "code": "0x",
-    "nonce": 0,
-    "nativeBalanceWei": "20000000000000000",
-    "testUsdcBalanceUnits": "100000000000",
-    "factoryAllowanceUnits": "0",
-    "localSignerAvailable": false
+    "nonceBefore": 0,
+    "nonceAfter": 12,
+    "nativeBalanceBeforeWei": "20000000000000000",
+    "nativeBalanceAfterWei": "19973647060000000",
+    "gasSpentWei": "26352940000000",
+    "testUsdcBalanceBeforeUnits": "100000000000",
+    "testUsdcBalanceAfterUnits": "99804130670",
+    "testUsdcNetChangeUnits": "-195869330",
+    "localSignerMatched": true
   },
   "contracts": {
     "settlementToken": "0xAc80194dc1aE8eF52df73e7e1864fB3C62290fe0",
@@ -25,17 +33,21 @@
     "teamTreasury": "0x6AE1c7B6c583E50777002b70FE289321f23B8fF3",
     "protocolTreasury": "0x786c860A8659b63Ebdf885a93a78282b2C80214b"
   },
-  "activationBaseline": {
+  "activation": {
     "registrar": "0x8f9208FD358c62FB4052e4C2FBbCA3152A17E4b6",
     "defaultMarketVersion": 1,
-    "globalRiskMode": 0
+    "globalRiskMode": 0,
+    "postE2eActivatedValidatorPassed": true
   },
-  "feeBaseline": {
-    "teamTreasuryBalanceUnits": "0",
-    "protocolClaimableUnits": "0",
-    "accountClaimableUnits": "0",
-    "totalLiabilityUnits": "0",
-    "feeVaultTokenBalanceUnits": "0"
+  "contest": {
+    "contestId": "0xb73517e2deacfc81a60953d1545f6602b186483d3e9b59fc43a5a8e75497513d",
+    "metadataHash": "0x73acb54b7fd2001cda28a873b83dc85528db23e864e43db6e43376ff097a9c95",
+    "userSalt": "0xa083341c303b7689cda3e12003b81f1ea3bed7fb5991840939083afefc3cda6a",
+    "marketVault": "0xB48B4B842c0fCbc18Fd616d3F89DE87562A8c494",
+    "sideAToken": "0xFdFf0F040681b38A7275F8398338956296a8055C",
+    "sideBToken": "0x5530BA151C61FCB21Ba55D3f116B60cb402FCd14",
+    "marketVersion": 1,
+    "registered": true
   },
   "lockedInputs": {
     "creationFeeUnits": "5000000",
@@ -47,9 +59,37 @@
     "sideBName": "XBID E2E Beta",
     "sideBSymbol": "E2EB"
   },
+  "tradingFees": {
+    "totalUnits": "238586658",
+    "protocolUnits": "167010664",
+    "creatorUnits": "47717330",
+    "referrerUnits": "23858664",
+    "creatorClaimedUnits": "47717330",
+    "referrerClaimedUnits": "23858664",
+    "referrer": "0xFd4D231bc094a8a33A0E7924ECa4CC2fbe143BA5"
+  },
+  "finalState": {
+    "teamTreasuryBalanceUnits": "5000000",
+    "protocolClaimableUnits": "167010664",
+    "accountClaimableUnits": "0",
+    "referrerClaimableUnits": "0",
+    "totalLiabilityUnits": "167010664",
+    "feeVaultTokenBalanceUnits": "167010664",
+    "referrerTokenBalanceUnits": "23858664",
+    "marketReserveUnits": "2",
+    "marketRequiredReserveUnits": "0",
+    "marketTokenBalanceUnits": "2",
+    "qAWei": "0",
+    "qBWei": "0",
+    "accountSideABalanceWei": "0",
+    "accountSideBBalanceWei": "0",
+    "sideATotalSupplyWei": "0",
+    "sideBTotalSupplyWei": "0",
+    "factoryTokenBalanceUnits": "0",
+    "registryTokenBalanceUnits": "0"
+  },
   "knownLimitations": [
     "The settlement token is permissionlessly mintable and has no real value.",
-    "No transaction may be attributed to the user EOA until it signs that transaction.",
-    "Governance and emergency cases require separate Safe-backed rounds."
+    "Governance, emergency, negative-path, frontend, indexer and reorg cases require separate E2E rounds."
   ]
 }

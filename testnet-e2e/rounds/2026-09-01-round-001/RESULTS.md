@@ -1,38 +1,71 @@
 # Round 001 Results
 
-> Overall status: `BLOCKED_AWAITING_ACCOUNT_SIGNER`  
-> Evidence cutoff block: `111181599`  
-> Last updated: 2026-09-01
+> Overall status: `PASSED_USER_PATH`; execution: 2026-09-02 06:36:54–06:37:24 Asia/Taipei; blocks: `111376571`–`111376771`; user transactions: `12 / 12 successful`.
 
-## Passed preflight checks
+## Conclusion
 
-- Chain ID is `46630`.
-- The locked account has no bytecode and is therefore an EOA.
-- Native balance is `0.02 ETH`; current Nonce is `0`.
-- Registry Registrar is the Factory Proxy and `defaultMarketVersion = 1`.
-- Global Risk Mode is `Normal`.
-- The account was funded with `100,000 Test USDC` in successful transaction `0xf12e5ea1833c7c7a7e2db7752f3868f82b7140799fd3d67944fa351ed58956f6`.
-- Post-funding Test USDC balance is `100,000`; Factory Allowance remains `0` as expected.
-- Team Treasury and FeeVault baselines are zero before the first Contest.
+The activated XBID V1 real Testnet user path passed for `0x22B12Cbad5a3EA288fEB71Df4Cf52E4F08529cbc`. Approval, deterministic Contest creation, direct Creation Fee collection, BUY, atomic FLIP, SELL, SELL ALL, 70/20/10 fee accounting, Creator/Referrer claims and final solvency all matched the locked specification.
 
-## Runner verification
+This round approves only the user path tested here. It is not Public Testnet or Mainnet release approval; governance, emergency, negative-path, frontend, indexer, reorg, source-verification and audit gates remain separate.
 
-The standard runner compiled successfully and completed a full no-broadcast simulation against the latest Robinhood Testnet state using a separate local development signer. The simulated path covered funding, Approval, deterministic Contest creation, BUY, atomic FLIP, SELL, two SELL ALL exits, exact 70/20/10 accrual, Creator/Referrer claims, Registry bindings and Reserve/FeeVault solvency. This proves the runner is executable but is not evidence that the locked E2E account performed those actions.
+## Created Contest
 
-## Blocking condition
+| Field | Value |
+| --- | --- |
+| Contest ID | `0xb73517e2deacfc81a60953d1545f6602b186483d3e9b59fc43a5a8e75497513d` |
+| Creator | `0x22B12Cbad5a3EA288fEB71Df4Cf52E4F08529cbc` |
+| MarketVault | `0xB48B4B842c0fCbc18Fd616d3F89DE87562A8c494` |
+| Side A | `0xFdFf0F040681b38A7275F8398338956296a8055C` |
+| Side B | `0x5530BA151C61FCB21Ba55D3f116B60cb402FCd14` |
+| Market Version | `1` |
 
-The only locally configured private key derives to deployment account `0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91`, not the locked E2E account. The user-path transactions therefore have not been broadcast. Substituting the deployment account or impersonating the locked account on a local fork would not be a real Testnet E2E for the requested address.
+Registry records, registered-address indexes, MarketVault bindings and both SideToken back-references were independently re-read and matched exactly.
 
-The disposable Testnet signer must be configured locally or the transactions must be approved by that address's wallet. The private key must never be pasted into chat or committed.
+## Case results
 
-## Current conclusion
+| Case | Result | Evidence summary |
+| --- | --- | --- |
+| PRE-001–005 | `PASSED` | Chain, activation, EOA, Gas, Test USDC, signer match and unused Contest ID verified before broadcast |
+| E2E-CREATE-001 | `PASSED` | Exact 5 Test USDC Factory approval succeeded |
+| E2E-CREATE-002 | `PASSED` | Deterministic MarketVault and two SideToken Clones deployed and registered |
+| E2E-CREATE-003 | `PASSED` | Team Treasury increased by exactly 5 Test USDC; Factory/Registry stayed at zero |
+| E2E-TRADE-001 | `PASSED` | BUY quote, mint, Reserve, Supply and fee events reconciled |
+| E2E-TRADE-002 | `PASSED` | One FLIP receipt contained one `Flipped`, one `TradingFeeProcessed` and one `TradingFeeAccrued` event |
+| E2E-TRADE-003 | `PASSED` | SELL burn, payout, Reserve and fee credit reconciled |
+| E2E-TRADE-004 | `PASSED` | Both SELL ALL transactions succeeded; user balances and both total supplies ended at zero |
+| E2E-FEE-001 | `PASSED` | Total `238.586658` split into Protocol `167.010664`, Creator `47.717330`, Referrer `23.858664` Test USDC |
+| E2E-FEE-002 | `PASSED` | Creator and Referrer credits were paid to their exact beneficiaries and cleared to zero |
+| E2E-SAFE-001 | `PASSED` | Market and FeeVault remained solvent; Factory/Registry held no Test USDC |
 
-Infrastructure activation, account Gas and Test USDC preparation passed. Real user-path E2E remains inconclusive until the locked EOA signs the Approval, Contest creation and trading transactions. No contract behavior has failed in this round, and no unexecuted case is marked as passed.
+## Final accounting
 
-## Required continuation
+| Account or ledger | Final units | Interpretation |
+| --- | ---: | --- |
+| User Test USDC | `99,804,130,670` | `99,804.130670` Test USDC |
+| Team Treasury | `5,000,000` | Exact Creation Fee |
+| FeeVault balance | `167,010,664` | Exactly equals remaining Protocol liability |
+| Protocol claimable | `167,010,664` | 70% plus integer dust |
+| Creator claimable | `0` | `47,717,330` already claimed |
+| Referrer claimable | `0` | `23,858,664` already claimed |
+| Referrer balance | `23,858,664` | Exact claimed amount |
+| Market balance / Reserve | `2 / 2` | Positive rounding buffer; required Reserve is `0` after full exit |
+| Factory / Registry | `0 / 0` | No retained Settlement Token |
 
-1. Configure a disposable Testnet-only signer that derives to `0x22b12cbad5a3ea288feb71df4cf52e4f08529cbc`.
-2. Run the reviewed standard E2E script.
-3. Copy the Foundry broadcast bundle into this round.
-4. Re-read every receipt and contract post-state independently.
-5. Replace `BLOCKED` case states with `PASSED` or `FAILED`, and add a final release conclusion.
+The user's Test USDC decrease was `195,869,330` units and reconciles exactly to Team Creation Fee `5,000,000` + Protocol liability `167,010,664` + Referrer payout `23,858,664` + Market rounding buffer `2`. Creator trading fees were returned to the user through `claimFees()`.
+
+Gas usage was `2,635,294` Gas across 12 user transactions, costing `0.00002635294 ETH` at the observed Testnet Gas price.
+
+## Receipt verification
+
+- All 12 receipts were independently re-read from RPC and returned `status = 1`.
+- The deployment-wide `REQUIRE_ACTIVATED=true` Validator passed again after the E2E round.
+- The execution bundle contains no private key, mnemonic, password or secret field.
+- `script-result.json` contains the assertion-backed result; `broadcast.json` contains the public transaction bundle and RPC receipts; `transactions.json` is the normalized human-review index.
+
+## Deferred rounds
+
+- Duplicate Contest and Creation Fee rollback;
+- Deadline, Minimum Output, balance-change and Referrer-rebind rejection;
+- Per-Market Risk-Off and Full Pause with Emergency/Governance Safes;
+- Factory upgrade rehearsal and historical Contest immutability;
+- Frontend receipt fallback, Indexer replay, multi-Version ABI routing and reorg recovery.
