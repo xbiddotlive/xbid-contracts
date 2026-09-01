@@ -3,6 +3,7 @@ pragma solidity 0.8.30;
 
 import {InvariantTest} from "solady/test/utils/InvariantTest.sol";
 import {LibClone} from "solady/src/utils/LibClone.sol";
+import {Vm} from "solady/test/utils/forge-std/Vm.sol";
 import {MarketVault} from "../../src/core/MarketVault.sol";
 import {SideToken} from "../../src/core/SideToken.sol";
 import {XbidTradeMath} from "../../src/libraries/XbidTradeMath.sol";
@@ -11,6 +12,8 @@ import {MockRiskController} from "../mocks/MockRiskController.sol";
 import {MockSettlementToken} from "../mocks/MockSettlementToken.sol";
 
 contract MarketVaultHandler {
+    Vm private constant VM = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+
     MarketVault public immutable market;
     SideToken public immutable tokenA;
     SideToken public immutable tokenB;
@@ -56,6 +59,11 @@ contract MarketVaultHandler {
 
     function sellAllB() external {
         _sellAll(MarketVault.Side.B, tokenB.balanceOf(address(this)));
+    }
+
+    function advanceTimeAndFinalize(uint32 seed) external {
+        VM.warp(block.timestamp + 1 + uint256(seed) % 120);
+        try market.finalizeCrownChallenge() {} catch {}
     }
 
     function _buy(MarketVault.Side side, uint256 seed) private {
@@ -144,5 +152,35 @@ contract MarketVaultInvariantTest is InvariantTest {
 
     function invariantPreviewStateRemainsSolvent() external view {
         XbidTradeMath.validateReserve(market.qAWei(), market.qBWei(), market.reserveUnits());
+    }
+
+    function invariantCrownStateIsInternallyConsistent() external view {
+        bool activated = market.crownActivated();
+        MarketVault.CrownSide currentCrown = market.crownSide();
+        bool open = market.challengeOpen();
+        uint64 hold = market.holdStartedAt();
+        bool waitingForReset = market.needsResetBelow45();
+
+        if (!activated) {
+            require(currentCrown == MarketVault.CrownSide.None, "inactive crown assigned");
+            require(!open && hold == 0 && !waitingForReset, "inactive crown state dirty");
+        }
+        if (currentCrown == MarketVault.CrownSide.None) {
+            require(!open && hold == 0 && !waitingForReset, "unassigned crown state dirty");
+        }
+        if (open) {
+            require(activated && currentCrown != MarketVault.CrownSide.None, "challenge without crown");
+            require(!waitingForReset, "challenge while reset blocked");
+            if (currentCrown == MarketVault.CrownSide.A) {
+                require(market.challengerSide() == MarketVault.Side.B, "A challenged by A");
+            } else {
+                require(market.challengerSide() == MarketVault.Side.A, "B challenged by B");
+            }
+        }
+        if (hold != 0) require(open, "hold without challenge");
+        if (waitingForReset) require(!open && hold == 0, "reset state inconsistent");
+        if (market.reserveUnits() >= market.CROWN_ACTIVATION_RESERVE_UNITS()) {
+            require(activated, "activation threshold missed");
+        }
     }
 }

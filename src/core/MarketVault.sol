@@ -7,6 +7,7 @@ import {SafeTransferLib} from "solady/src/utils/SafeTransferLib.sol";
 import {IFeeVault} from "../interfaces/IFeeVault.sol";
 import {IRiskController} from "../interfaces/IRiskController.sol";
 import {ISideToken} from "../interfaces/ISideToken.sol";
+import {XbidCrownMath} from "../libraries/XbidCrownMath.sol";
 import {XbidLmsrMath} from "../libraries/XbidLmsrMath.sol";
 import {XbidTradeMath} from "../libraries/XbidTradeMath.sol";
 
@@ -17,6 +18,21 @@ contract MarketVault is Initializable, ReentrancyGuard {
     enum Side {
         A,
         B
+    }
+
+    enum CrownSide {
+        None,
+        A,
+        B
+    }
+
+    enum CrownStatus {
+        Inactive,
+        ActiveUnassigned,
+        ActiveIdle,
+        ChallengeOpen,
+        TakeoverHold,
+        DefendedWaitReset
     }
 
     error ZeroAddress();
@@ -35,6 +51,8 @@ contract MarketVault is Initializable, ReentrancyGuard {
     error InvalidReferrer(address referrer);
     error ReferrerAlreadyBound(address existingReferrer, address suppliedReferrer);
     error InvalidFeeAllocation(uint256 feeUnits, uint256 allocatedUnits);
+    error CrownChallengeNotReady(uint256 readyAt, uint256 currentTimestamp);
+    error CrownChallengeThresholdLost();
 
     event MarketInitialized(
         bytes32 indexed contestId,
@@ -92,6 +110,26 @@ contract MarketVault is Initializable, ReentrancyGuard {
         uint256 qBAfterWei,
         uint256 reserveAfterUnits
     );
+    event CrownActivated(bytes32 indexed contestId, uint256 qAWei, uint256 qBWei, uint256 reserveUnits);
+    event CrownAssigned(bytes32 indexed contestId, CrownSide indexed crownSide, uint256 qAWei, uint256 qBWei);
+    event CrownChallengeOpened(bytes32 indexed contestId, CrownSide indexed crownSide, Side indexed challengerSide);
+    event CrownHoldStarted(
+        bytes32 indexed contestId, Side indexed challengerSide, uint64 holdStartedAt, uint64 readyAt
+    );
+    event CrownHoldReset(bytes32 indexed contestId, Side indexed challengerSide, uint64 previousHoldStartedAt);
+    event CrownDefended(
+        bytes32 indexed contestId,
+        CrownSide indexed crownSide,
+        Side indexed challengerSide,
+        bool resetRequirementSatisfied
+    );
+    event CrownResetRequirementSatisfied(bytes32 indexed contestId, Side indexed formerChallengerSide);
+    event CrownTransferred(
+        bytes32 indexed contestId, CrownSide indexed previousCrownSide, CrownSide indexed newCrownSide
+    );
+
+    uint256 public constant CROWN_ACTIVATION_RESERVE_UNITS = 70_000_000_000;
+    uint64 public constant CROWN_HOLD_SECONDS = 60;
 
     bytes32 public contestId;
     uint32 public marketVersion;
@@ -105,6 +143,13 @@ contract MarketVault is Initializable, ReentrancyGuard {
     uint256 public qAWei;
     uint256 public qBWei;
     uint256 public reserveUnits;
+
+    bool public crownActivated;
+    CrownSide public crownSide;
+    Side public challengerSide;
+    bool public challengeOpen;
+    uint64 public holdStartedAt;
+    bool public needsResetBelow45;
 
     mapping(address trader => address referrer) public referrerOf;
 
@@ -163,6 +208,15 @@ contract MarketVault is Initializable, ReentrancyGuard {
         return XbidTradeMath.requiredReserveUnits(qAWei, qBWei);
     }
 
+    function crownStatus() public view returns (CrownStatus) {
+        if (!crownActivated) return CrownStatus.Inactive;
+        if (crownSide == CrownSide.None) return CrownStatus.ActiveUnassigned;
+        if (needsResetBelow45) return CrownStatus.DefendedWaitReset;
+        if (!challengeOpen) return CrownStatus.ActiveIdle;
+        if (holdStartedAt != 0) return CrownStatus.TakeoverHold;
+        return CrownStatus.ChallengeOpen;
+    }
+
     function previewBuy(Side side, uint256 grossInputUnits) public view returns (XbidTradeMath.BuyResult memory) {
         _requireBuyAndFlipAllowed();
         return XbidTradeMath.quoteBuy(qAWei, qBWei, reserveUnits, side == Side.A, grossInputUnits);
@@ -212,6 +266,7 @@ contract MarketVault is Initializable, ReentrancyGuard {
         _processFee(msg.sender, boundReferrer, quote.feeUnits);
         _mintExact(_sideToken(side), msg.sender, quote.tokenOutputWei, side == Side.A ? qAWei : qBWei);
         _assertMarketInvariants();
+        _syncCrownAfterTrade();
 
         emit Bought(
             contestId,
@@ -273,6 +328,7 @@ contract MarketVault is Initializable, ReentrancyGuard {
             destinationSide == Side.A ? qAWei : qBWei
         );
         _assertMarketInvariants();
+        _syncCrownAfterTrade();
 
         emit Flipped(
             contestId,
@@ -287,6 +343,22 @@ contract MarketVault is Initializable, ReentrancyGuard {
             reserveUnits
         );
         return quote.destinationTokenOutputWei;
+    }
+
+    /// @notice Permissionlessly completes an elapsed Crown hold without a trade.
+    /// @dev Deliberately remains available during Risk-Off and Full Pause because
+    ///      it moves no funds and only settles a state transition already earned.
+    function finalizeCrownChallenge() external nonReentrant {
+        if (!challengeOpen || holdStartedAt == 0) {
+            revert CrownChallengeNotReady(0, block.timestamp);
+        }
+        (uint256 challengerQuantityWei, uint256 crownQuantityWei) = _challengeQuantities();
+        if (!XbidCrownMath.challengerAtLeast52(challengerQuantityWei, crownQuantityWei)) {
+            revert CrownChallengeThresholdLost();
+        }
+        uint256 readyAt = uint256(holdStartedAt) + CROWN_HOLD_SECONDS;
+        if (block.timestamp < readyAt) revert CrownChallengeNotReady(readyAt, block.timestamp);
+        _transferCrown();
     }
 
     function _executeSell(
@@ -308,6 +380,7 @@ contract MarketVault is Initializable, ReentrancyGuard {
         _processFee(msg.sender, referrerOf[msg.sender], quote.feeUnits);
         _pushExact(settlementToken, msg.sender, quote.netOutputUnits);
         _assertMarketInvariants();
+        _syncCrownAfterTrade();
 
         emit Sold(
             contestId,
@@ -323,6 +396,79 @@ contract MarketVault is Initializable, ReentrancyGuard {
             sellAll_
         );
         return quote.netOutputUnits;
+    }
+
+    function _syncCrownAfterTrade() internal {
+        if (!crownActivated) {
+            if (reserveUnits < CROWN_ACTIVATION_RESERVE_UNITS) return;
+            crownActivated = true;
+            emit CrownActivated(contestId, qAWei, qBWei, reserveUnits);
+        }
+
+        if (crownSide == CrownSide.None) {
+            if (qAWei == qBWei) return;
+            crownSide = qAWei > qBWei ? CrownSide.A : CrownSide.B;
+            emit CrownAssigned(contestId, crownSide, qAWei, qBWei);
+        }
+
+        Side nonCrownSide = crownSide == CrownSide.A ? Side.B : Side.A;
+        (uint256 nonCrownQuantityWei, uint256 currentCrownQuantityWei) = _quantities(nonCrownSide);
+
+        if (needsResetBelow45) {
+            if (!XbidCrownMath.challengerStrictlyBelow45(nonCrownQuantityWei, currentCrownQuantityWei)) return;
+            needsResetBelow45 = false;
+            emit CrownResetRequirementSatisfied(contestId, nonCrownSide);
+        }
+
+        if (!challengeOpen) {
+            if (!XbidCrownMath.challengerAtLeast48(nonCrownQuantityWei, currentCrownQuantityWei)) return;
+            challengeOpen = true;
+            challengerSide = nonCrownSide;
+            emit CrownChallengeOpened(contestId, crownSide, challengerSide);
+        }
+
+        (uint256 challengerQuantityWei, uint256 crownQuantityWei) = _challengeQuantities();
+        if (XbidCrownMath.challengerAtLeast52(challengerQuantityWei, crownQuantityWei)) {
+            if (holdStartedAt == 0) {
+                // forge-lint: disable-next-line(unsafe-typecast)
+                holdStartedAt = uint64(block.timestamp);
+                emit CrownHoldStarted(contestId, challengerSide, holdStartedAt, holdStartedAt + CROWN_HOLD_SECONDS);
+                return;
+            }
+            if (block.timestamp >= uint256(holdStartedAt) + CROWN_HOLD_SECONDS) _transferCrown();
+            return;
+        }
+
+        if (holdStartedAt != 0) {
+            uint64 previousHoldStartedAt = holdStartedAt;
+            holdStartedAt = 0;
+            emit CrownHoldReset(contestId, challengerSide, previousHoldStartedAt);
+        }
+
+        if (XbidCrownMath.crownAtLeast55(crownQuantityWei, challengerQuantityWei)) {
+            bool resetSatisfied = XbidCrownMath.challengerStrictlyBelow45(challengerQuantityWei, crownQuantityWei);
+            challengeOpen = false;
+            needsResetBelow45 = !resetSatisfied;
+            emit CrownDefended(contestId, crownSide, challengerSide, resetSatisfied);
+        }
+    }
+
+    function _transferCrown() private {
+        CrownSide previousCrownSide = crownSide;
+        CrownSide newCrownSide = challengerSide == Side.A ? CrownSide.A : CrownSide.B;
+        crownSide = newCrownSide;
+        challengeOpen = false;
+        holdStartedAt = 0;
+        needsResetBelow45 = false;
+        emit CrownTransferred(contestId, previousCrownSide, newCrownSide);
+    }
+
+    function _challengeQuantities() private view returns (uint256 challengerQuantityWei, uint256 crownQuantityWei) {
+        return _quantities(challengerSide);
+    }
+
+    function _quantities(Side side_) private view returns (uint256 sideQuantityWei, uint256 otherQuantityWei) {
+        return side_ == Side.A ? (qAWei, qBWei) : (qBWei, qAWei);
     }
 
     function _bindOrLoadReferrer(address trader, address suppliedReferrer) private returns (address boundReferrer) {

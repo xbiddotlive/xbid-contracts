@@ -1,8 +1,8 @@
 # XBID Contracts
 
-XBID 的 Solidity + Foundry 合约仓库。`OPEN-003` 与 `OPEN-011` 已关闭，当前已实现 Market Version 1 的 LMSR 数学、交易整数账本、不可升级 `MarketVault` / `SideToken` Clone 交易核心和资产流测试。
+XBID 的 Solidity + Foundry 合约仓库。`OPEN-003` 与 `OPEN-011` 已关闭，当前已实现 Market Version 1 的 LMSR 数学、交易整数账本、不可升级 `MarketVault` / `SideToken` Clone、Crown 状态机和资产流测试。
 
-当前代码仍是开发版本，不代表已审计或可部署主网。Crown 状态机、生产 `FeeVault`、生产 `RiskController`、Factory、Append-only Registry、部署脚本和审计仍未完成。
+当前代码仍是开发版本，不代表已审计或可部署主网。生产 `FeeVault`、生产 `RiskController`、Factory、Append-only Registry、部署脚本和审计仍未完成。
 
 ## Toolchain
 
@@ -27,6 +27,7 @@ src/core/MarketVault.sol
 src/core/SideToken.sol
 src/libraries/XbidLmsrMath.sol
 src/libraries/XbidTradeMath.sol
+src/libraries/XbidCrownMath.sol
 src/interfaces/IFeeVault.sol
 src/interfaces/IRiskController.sol
 ```
@@ -41,7 +42,9 @@ src/interfaces/IRiskController.sol
 - Settlement Token 与 SideToken 的精确 Balance Delta；
 - Reserve、Curve Cost 与 SideToken Supply 不变量；
 - FeeVault 同步原子 Credit；
-- 交易入口重入保护。
+- 交易入口重入保护；
+- 70K Reserve 激活、48% Challenge、52%/60 秒 Hold、55% Defense、严格低于 45% 重武装；
+- Permissionless `finalizeCrownChallenge()`，在 Risk-Off / Full Pause 下仍可结算已满足的 Crown 转移。
 
 `SideToken` 是 18 decimals ERC-20 + ERC-2612 Permit Clone。只有永久绑定的 MarketVault 可以 Mint，且只能 Burn 已经转入 Vault 自身的 Token。
 

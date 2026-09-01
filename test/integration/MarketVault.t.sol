@@ -277,6 +277,28 @@ contract MarketVaultTest is Test {
         assertTrue(market.reserveUnits() >= market.requiredReserveUnits());
     }
 
+    function testTradeActivatesCrownAndActivationPersistsAfterReserveFalls() external {
+        uint256 gross = 80_000_000_000;
+        XbidTradeMath.BuyResult memory buyQuote = market.previewBuy(MarketVault.Side.A, gross);
+        vm.prank(TRADER);
+        market.buy(MarketVault.Side.A, gross, buyQuote.tokenOutputWei, block.timestamp, address(0));
+
+        assertTrue(market.crownActivated());
+        assertEq(uint256(market.crownSide()), uint256(MarketVault.CrownSide.A));
+        assertTrue(market.reserveUnits() >= market.CROWN_ACTIVATION_RESERVE_UNITS());
+
+        vm.startPrank(TRADER);
+        tokenA.approve(address(market), buyQuote.tokenOutputWei);
+        XbidTradeMath.SellResult memory sellQuote =
+            market.previewSellAll(MarketVault.Side.A, TRADER, buyQuote.tokenOutputWei);
+        market.sellAll(MarketVault.Side.A, buyQuote.tokenOutputWei, sellQuote.netOutputUnits, block.timestamp);
+        vm.stopPrank();
+
+        assertTrue(market.crownActivated());
+        assertEq(uint256(market.crownSide()), uint256(MarketVault.CrownSide.A));
+        assertTrue(market.reserveUnits() < market.CROWN_ACTIVATION_RESERVE_UNITS());
+    }
+
     function testOnlyMarketCanMintOrBurnSideTokens() external {
         vm.expectRevert(SideToken.Unauthorized.selector);
         tokenA.mintTo(TRADER, 1);
