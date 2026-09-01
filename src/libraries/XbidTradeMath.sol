@@ -1,0 +1,223 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.30;
+
+import {FixedPointMathLib} from "solady/src/utils/FixedPointMathLib.sol";
+import {XbidLmsrMath} from "./XbidLmsrMath.sol";
+
+/// @notice Integer settlement and reserve accounting for XBID Market Version 1.
+/// @dev Settlement amounts use 6-decimal base units; Side quantities use WAD.
+///      Fees are excluded from Curve Reserve and transferred to FeeVault.
+library XbidTradeMath {
+    error InsufficientReserve(uint256 actualUnits, uint256 requiredUnits);
+    error BuyGrossBelowMinimum(uint256 grossInputUnits);
+    error SellGrossBelowMinimum(uint256 grossOutputUnits);
+    error FlipGrossBelowMinimum(uint256 grossOutputUnits);
+    error InvalidTokenInput(uint256 tokenInputWei, uint256 availableQuantityWei);
+    error ZeroTokenOutput();
+    error ZeroNetOutput();
+    error CurveInputExceedsCapacity(uint256 curveInputWad, uint256 maximumWad);
+    error BuySolutionExceedsBudget(uint256 costAfterWad, uint256 targetCostWad);
+
+    uint256 internal constant WAD = 1e18;
+    int256 internal constant WAD_SIGNED = 1e18;
+    uint256 internal constant SETTLEMENT_TO_WAD = 1e12;
+    uint256 internal constant BPS_DENOMINATOR = 10_000;
+    uint256 internal constant TRADING_FEE_BPS = 100;
+    uint256 internal constant MINIMUM_BUY_GROSS_UNITS = 1_000_000;
+    uint256 internal constant MINIMUM_SELL_GROSS_UNITS = 1_000_000;
+    uint256 internal constant MINIMUM_FLIP_GROSS_UNITS = 50_000_000;
+
+    struct BuyResult {
+        uint256 feeUnits;
+        uint256 curveInputUnits;
+        uint256 tokenOutputWei;
+        uint256 qAAfterWei;
+        uint256 qBAfterWei;
+        uint256 reserveAfterUnits;
+    }
+
+    struct SellResult {
+        uint256 grossOutputUnits;
+        uint256 feeUnits;
+        uint256 netOutputUnits;
+        uint256 qAAfterWei;
+        uint256 qBAfterWei;
+        uint256 reserveAfterUnits;
+    }
+
+    struct FlipResult {
+        uint256 sourceGrossOutputUnits;
+        uint256 feeUnits;
+        uint256 destinationCurveInputUnits;
+        uint256 destinationTokenOutputWei;
+        uint256 qAAfterWei;
+        uint256 qBAfterWei;
+        uint256 reserveAfterUnits;
+    }
+
+    function requiredReserveUnits(uint256 qAWei, uint256 qBWei) internal pure returns (uint256) {
+        return FixedPointMathLib.divUp(XbidLmsrMath.costWad(qAWei, qBWei), SETTLEMENT_TO_WAD);
+    }
+
+    function validateReserve(uint256 qAWei, uint256 qBWei, uint256 reserveUnits) internal pure {
+        uint256 requiredUnits = requiredReserveUnits(qAWei, qBWei);
+        if (reserveUnits < requiredUnits) revert InsufficientReserve(reserveUnits, requiredUnits);
+    }
+
+    function tradingFeeUnits(uint256 grossUnits) internal pure returns (uint256) {
+        return FixedPointMathLib.fullMulDivUp(grossUnits, TRADING_FEE_BPS, BPS_DENOMINATOR);
+    }
+
+    function quoteBuy(uint256 qAWei, uint256 qBWei, uint256 reserveUnits, bool sideA, uint256 grossInputUnits)
+        internal
+        pure
+        returns (BuyResult memory result)
+    {
+        validateReserve(qAWei, qBWei, reserveUnits);
+        if (grossInputUnits < MINIMUM_BUY_GROSS_UNITS) revert BuyGrossBelowMinimum(grossInputUnits);
+
+        result.feeUnits = tradingFeeUnits(grossInputUnits);
+        result.curveInputUnits = grossInputUnits - result.feeUnits;
+
+        uint256 currentQuantityWei = sideA ? qAWei : qBWei;
+        uint256 otherQuantityWei = sideA ? qBWei : qAWei;
+        uint256 nextQuantityWei = _solveBuyQuantity(currentQuantityWei, otherQuantityWei, result.curveInputUnits);
+        result.tokenOutputWei = nextQuantityWei - currentQuantityWei;
+        if (result.tokenOutputWei == 0) revert ZeroTokenOutput();
+
+        result.qAAfterWei = sideA ? nextQuantityWei : qAWei;
+        result.qBAfterWei = sideA ? qBWei : nextQuantityWei;
+        result.reserveAfterUnits = reserveUnits + result.curveInputUnits;
+        validateReserve(result.qAAfterWei, result.qBAfterWei, result.reserveAfterUnits);
+    }
+
+    function quoteSell(
+        uint256 qAWei,
+        uint256 qBWei,
+        uint256 reserveUnits,
+        bool sideA,
+        uint256 tokenInputWei,
+        bool sellAll
+    ) internal pure returns (SellResult memory result) {
+        validateReserve(qAWei, qBWei, reserveUnits);
+
+        uint256 currentQuantityWei = sideA ? qAWei : qBWei;
+        if (tokenInputWei == 0 || tokenInputWei > currentQuantityWei) {
+            revert InvalidTokenInput(tokenInputWei, currentQuantityWei);
+        }
+
+        result.qAAfterWei = sideA ? currentQuantityWei - tokenInputWei : qAWei;
+        result.qBAfterWei = sideA ? qBWei : currentQuantityWei - tokenInputWei;
+        uint256 releasedCostWad =
+            XbidLmsrMath.costWad(qAWei, qBWei) - XbidLmsrMath.costWad(result.qAAfterWei, result.qBAfterWei);
+        result.grossOutputUnits = releasedCostWad / SETTLEMENT_TO_WAD;
+
+        if (!sellAll && result.grossOutputUnits < MINIMUM_SELL_GROSS_UNITS) {
+            revert SellGrossBelowMinimum(result.grossOutputUnits);
+        }
+        result.feeUnits = tradingFeeUnits(result.grossOutputUnits);
+        result.netOutputUnits = result.grossOutputUnits - result.feeUnits;
+        if (result.netOutputUnits == 0) revert ZeroNetOutput();
+
+        result.reserveAfterUnits = reserveUnits - result.grossOutputUnits;
+        validateReserve(result.qAAfterWei, result.qBAfterWei, result.reserveAfterUnits);
+    }
+
+    function quoteFlip(
+        uint256 qAWei,
+        uint256 qBWei,
+        uint256 reserveUnits,
+        bool sourceSideA,
+        uint256 sourceTokenInputWei
+    ) internal pure returns (FlipResult memory result) {
+        validateReserve(qAWei, qBWei, reserveUnits);
+
+        uint256 sourceQuantityWei = sourceSideA ? qAWei : qBWei;
+        if (sourceTokenInputWei == 0 || sourceTokenInputWei > sourceQuantityWei) {
+            revert InvalidTokenInput(sourceTokenInputWei, sourceQuantityWei);
+        }
+
+        uint256 qAAfterBurnWei = sourceSideA ? sourceQuantityWei - sourceTokenInputWei : qAWei;
+        uint256 qBAfterBurnWei = sourceSideA ? qBWei : sourceQuantityWei - sourceTokenInputWei;
+        uint256 releasedCostWad =
+            XbidLmsrMath.costWad(qAWei, qBWei) - XbidLmsrMath.costWad(qAAfterBurnWei, qBAfterBurnWei);
+        result.sourceGrossOutputUnits = releasedCostWad / SETTLEMENT_TO_WAD;
+        if (result.sourceGrossOutputUnits < MINIMUM_FLIP_GROSS_UNITS) {
+            revert FlipGrossBelowMinimum(result.sourceGrossOutputUnits);
+        }
+
+        result.feeUnits = tradingFeeUnits(result.sourceGrossOutputUnits);
+        result.destinationCurveInputUnits = result.sourceGrossOutputUnits - result.feeUnits;
+
+        uint256 destinationQuantityWei = sourceSideA ? qBAfterBurnWei : qAAfterBurnWei;
+        uint256 remainingSourceQuantityWei = sourceSideA ? qAAfterBurnWei : qBAfterBurnWei;
+        uint256 nextDestinationQuantityWei =
+            _solveBuyQuantity(destinationQuantityWei, remainingSourceQuantityWei, result.destinationCurveInputUnits);
+        result.destinationTokenOutputWei = nextDestinationQuantityWei - destinationQuantityWei;
+        if (result.destinationTokenOutputWei == 0) revert ZeroTokenOutput();
+
+        result.qAAfterWei = sourceSideA ? qAAfterBurnWei : nextDestinationQuantityWei;
+        result.qBAfterWei = sourceSideA ? nextDestinationQuantityWei : qBAfterBurnWei;
+        result.reserveAfterUnits = reserveUnits - result.feeUnits;
+        validateReserve(result.qAAfterWei, result.qBAfterWei, result.reserveAfterUnits);
+    }
+
+    function _solveBuyQuantity(uint256 currentQuantityWei, uint256 otherQuantityWei, uint256 curveInputUnits)
+        private
+        pure
+        returns (uint256 nextQuantityWei)
+    {
+        uint256 currentCostWad = XbidLmsrMath.costWad(currentQuantityWei, otherQuantityWei);
+        uint256 maximumCostWad = XbidLmsrMath.costWad(XbidLmsrMath.maximumSideQuantityWad(), otherQuantityWei);
+        uint256 curveInputWad = curveInputUnits * SETTLEMENT_TO_WAD;
+        uint256 maximumCurveInputWad = maximumCostWad - currentCostWad;
+        if (curveInputWad > maximumCurveInputWad) {
+            revert CurveInputExceedsCapacity(curveInputWad, maximumCurveInputWad);
+        }
+
+        nextQuantityWei = _nextQuantityFromInput(currentQuantityWei, otherQuantityWei, curveInputWad);
+        uint256 costAfterWad = XbidLmsrMath.costWad(nextQuantityWei, otherQuantityWei);
+        uint256 targetCostWad = currentCostWad + curveInputWad;
+        if (costAfterWad > targetCostWad) {
+            // Retry one Settlement base unit below the paid Curve Input. This
+            // absorbs fixed-point inverse error as positive Reserve buffer.
+            nextQuantityWei =
+                _nextQuantityFromInput(currentQuantityWei, otherQuantityWei, curveInputWad - SETTLEMENT_TO_WAD);
+            costAfterWad = XbidLmsrMath.costWad(nextQuantityWei, otherQuantityWei);
+        }
+        if (costAfterWad > targetCostWad) revert BuySolutionExceedsBudget(costAfterWad, targetCostWad);
+    }
+
+    function _nextQuantityFromInput(uint256 currentQuantityWei, uint256 otherQuantityWei, uint256 curveInputWad)
+        private
+        pure
+        returns (uint256 nextQuantityWei)
+    {
+        int256 bWadSigned = XbidLmsrMath.bWad();
+        // All values are bounded by Market Version 1 and fit safely in int256.
+        // forge-lint: disable-next-line(unsafe-typecast)
+        int256 currentRatioWad = FixedPointMathLib.sDivWad(int256(currentQuantityWei), bWadSigned);
+        // forge-lint: disable-next-line(unsafe-typecast)
+        int256 inputRatioWad = FixedPointMathLib.sDivWad(int256(curveInputWad), bWadSigned);
+        int256 growthWadSigned = FixedPointMathLib.expWad(inputRatioWad) - WAD_SIGNED;
+        int256 partitionWadSigned =
+            FixedPointMathLib.expWad(XbidLmsrMath.logPartitionWad(currentQuantityWei, otherQuantityWei));
+
+        // expWad is non-negative in the locked domain.
+        // forge-lint: disable-next-line(unsafe-typecast)
+        uint256 currentWeightWad = uint256(FixedPointMathLib.expWad(currentRatioWad));
+        // forge-lint: disable-next-line(unsafe-typecast)
+        uint256 partitionWad = uint256(partitionWadSigned);
+        // forge-lint: disable-next-line(unsafe-typecast)
+        uint256 growthWad = uint256(growthWadSigned);
+        uint256 nextWeightWad = currentWeightWad + FixedPointMathLib.fullMulDiv(partitionWad, growthWad, WAD);
+
+        // Capacity validation proves nextWeightWad fits in int256.
+        // forge-lint: disable-next-line(unsafe-typecast)
+        int256 nextWeightSigned = int256(nextWeightWad);
+        int256 nextQuantitySigned = FixedPointMathLib.sMulWad(bWadSigned, FixedPointMathLib.lnWad(nextWeightSigned));
+        // nextWeight >= currentWeight >= 1e18, so the result is non-negative.
+        // forge-lint: disable-next-line(unsafe-typecast)
+        nextQuantityWei = uint256(nextQuantitySigned);
+    }
+}

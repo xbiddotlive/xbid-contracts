@@ -5,7 +5,7 @@ import {FixedPointMathLib} from "solady/src/utils/FixedPointMathLib.sol";
 
 /// @notice Fixed-parameter LMSR math for XBID Market Version 1.
 /// @dev Quantities and outputs use signed/unsigned WAD (1e18). Settlement-token
-///      rounding is deliberately outside this library and is locked by OPEN-011.
+///      rounding is implemented by XbidTradeMath under the locked OPEN-011 rules.
 library XbidLmsrMath {
     error QuantityOutOfRange(uint256 qAWei, uint256 qBWei);
     error NegativeCost(int256 costWad);
@@ -19,6 +19,14 @@ library XbidLmsrMath {
     int256 internal constant INITIAL_LOG_PARTITION_WAD = 4_605_170_185_988_091_367;
 
     uint256 internal constant MAX_SIDE_QUANTITY_WAD = 30_000_000e18;
+
+    function bWad() internal pure returns (int256) {
+        return B_WAD;
+    }
+
+    function maximumSideQuantityWad() internal pure returns (uint256) {
+        return MAX_SIDE_QUANTITY_WAD;
+    }
 
     function logPartitionWad(uint256 qAWei, uint256 qBWei) internal pure returns (int256) {
         _validateQuantities(qAWei, qBWei);
