@@ -4,6 +4,8 @@
 
 Protocol contract source verification is intentionally deferred for the current internal Testnet phase. This exception does not apply to Public Testnet or Mainnet readiness.
 
+`phase-b-proposal.json` is the prepared, not-yet-scheduled Governance Safe payload. It locks the two-call atomic activation batch, zero predecessor, unique salt, operation ID, 300-second delay, and raw Safe transaction calldata. Its presence is not evidence that either Safe transaction was submitted or executed; current state must always be read from the Timelock and protocol contracts.
+
 Rules:
 
 - Never hand-edit a generated manifest.
