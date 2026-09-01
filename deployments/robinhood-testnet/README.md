@@ -6,6 +6,8 @@ Protocol contract source verification is intentionally deferred for the current 
 
 `phase-b-proposal.json` is the prepared, not-yet-scheduled Governance Safe payload. It locks the two-call atomic activation batch, zero predecessor, unique salt, operation ID, 300-second delay, and raw Safe transaction calldata. Its presence is not evidence that either Safe transaction was submitted or executed; current state must always be read from the Timelock and protocol contracts.
 
+`phase-b-schedule.safe.json` is the Safe Transaction Builder v1.0 import file for the schedule transaction only. It deliberately contains one raw `CALL` to the Timelock, never the later execute transaction. Verify the Safe address, chain ID, target, value, decoded method and operation ID in the Safe UI before signing.
+
 Rules:
 
 - Never hand-edit a generated manifest.
