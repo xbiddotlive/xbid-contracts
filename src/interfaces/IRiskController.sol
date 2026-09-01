@@ -8,5 +8,9 @@ interface IRiskController {
         FullPause
     }
 
+    function globalMode() external view returns (RiskMode);
+
+    function marketMode(address market) external view returns (RiskMode);
+
     function effectiveMode(address market) external view returns (RiskMode);
 }

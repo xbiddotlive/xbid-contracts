@@ -1,8 +1,8 @@
 # XBID Contracts
 
-XBID 的 Solidity + Foundry 合约仓库。`OPEN-003` 与 `OPEN-011` 已关闭，当前已实现 Market Version 1 的 LMSR 数学、交易整数账本、不可升级 `MarketVault` / `SideToken` Clone、Crown 状态机，以及不可升级、Version 化的生产 `FeeVault`。
+XBID 的 Solidity + Foundry 合约仓库。`OPEN-003` 与 `OPEN-011` 已关闭，当前已实现 Market Version 1 的 LMSR 数学、交易整数账本、不可升级 `MarketVault` / `SideToken` Clone、Crown 状态机，以及不可升级、Version 化的生产 `FeeVault` 和 `RiskController`。
 
-当前代码仍是开发版本，不代表已审计或可部署主网。生产 `RiskController`、Factory、Append-only Registry、部署脚本和审计仍未完成。
+当前代码仍是开发版本，不代表已审计或可部署主网。Factory、Append-only Registry、部署脚本和审计仍未完成。
 
 ## Toolchain
 
@@ -26,6 +26,7 @@ forge test
 src/core/MarketVault.sol
 src/core/SideToken.sol
 src/core/FeeVault.sol
+src/core/RiskController.sol
 src/libraries/XbidLmsrMath.sol
 src/libraries/XbidTradeMath.sol
 src/libraries/XbidCrownMath.sol
@@ -52,6 +53,8 @@ src/interfaces/IRiskController.sol
 
 `FeeVault` 由 Constructor 部署且不可升级，永久绑定 6-decimal Settlement Token、Append-only MarketRegistry、Governance Timelock 和 Fee Version。只有已登记 MarketVault 可以原子 Credit；Claim Pause 不影响 Credit 或 Risk-Off SELL。Fee Split、Protocol Treasury 与 Emergency Role 只能由 Governance Timelock 更新。
 
+`RiskController` 不可升级、不持有资金且不调用外部合约。它以常量 Gas 读取 Global 与 Per-Market 模式的较高值；Emergency Role 只能严格升档，只有 Governance Timelock 可以降档或恢复，且两个角色地址强制分离。
+
 ## 验证
 
 ```bash
@@ -60,6 +63,6 @@ forge test --match-path test/unit/FixedPointMathCandidates.t.sol -vvv
 forge build --sizes
 ```
 
-测试包含固定向量、Fuzz、真实 Token 资产流、恶意依赖回滚和 Stateful Invariant。`MarketVault` 状态机持续验证 Reserve、Supply、Settlement 守恒和 Fee Credit；`FeeVault` 状态机持续验证偿付能力、负债守恒、Split 守恒和 Claim Pause 下的 Credit Liveness。
+测试包含固定向量、Fuzz、真实 Token 资产流、恶意依赖回滚和 Stateful Invariant。`MarketVault` 状态机持续验证 Reserve、Supply、Settlement 守恒和 Fee Credit；`FeeVault` 状态机持续验证偿付能力、负债守恒、Split 守恒和 Claim Pause 下的 Credit Liveness；`RiskController` 状态机持续验证最大风险模式、Emergency 单向权限与非托管边界。
 
 Benchmark 候选代码位于 `src/libraries/benchmark/`，不是生产入口。生产数学使用 Solady `FixedPointMathLib` 和已经锁定的稳定 log-sum-exp、业务输入边界及有利于 Reserve 的整数舍入。
