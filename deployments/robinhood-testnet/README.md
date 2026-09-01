@@ -4,13 +4,15 @@
 
 Protocol contract source verification is intentionally deferred for the current internal Testnet phase. This exception does not apply to Public Testnet or Mainnet readiness.
 
-`phase-b-proposal.json` is the prepared, not-yet-scheduled Governance Safe payload. It locks the two-call atomic activation batch, zero predecessor, unique salt, operation ID, 300-second delay, and raw Safe transaction calldata. Its presence is not evidence that either Safe transaction was submitted or executed; current state must always be read from the Timelock and protocol contracts.
+`phase-b-proposal.json` records the complete Governance Safe activation lifecycle. It locks the two-call atomic activation batch, zero predecessor, unique salt, operation ID, 300-second delay, raw Safe transaction calldata, confirmed schedule and execute transactions, and the activated validation result. Current state must still be independently read from the Timelock and protocol contracts.
 
 `phase-b-schedule.safe.json` is the Safe Transaction Builder v1.0 import file for the schedule transaction only. It deliberately contains one raw `CALL` to the Timelock, never the later execute transaction. Verify the Safe address, chain ID, target, value, decoded method and operation ID in the Safe UI before signing.
 
 Phase B operation `0x3ab1120dbd78b416e10c0ff5118ccc2bbf8dd293950fd0ca24d964cf29cfdd7f` was scheduled in transaction `0x01cab7e9fb17e4db80c2d41c94046d0e830dd192f6fc6e46ae2898519b2f84a5`, block `111173448`, with ETA `1788271704`. Do not use a Safe creation transaction hash as schedule evidence.
 
-`phase-b-execute.safe.json` contains the separate one-transaction `executeBatch` Safe import. It must not be imported, signed, or executed until the Timelock reports this exact operation as Ready.
+`phase-b-execute.safe.json` is the immutable Safe Transaction Builder input used for the separate one-transaction `executeBatch`. The operation was executed successfully in transaction `0xade450348efe2141634f0f8542d0ef768b5a5258b6bd55196a1b33efc4d17e84`, block `111176264`; Safe transaction hash `0x48244afd87a435aca2771fc91a3177ab71532a23e8a660cea10634abba437af5`. The Timelock emitted two matching `CallExecuted` events and now reports the operation as Done.
+
+`phase-b-receipts.json` records the independently re-read schedule and execute receipts, Safe execution hashes, event counts, activated contract state, and the successful `REQUIRE_ACTIVATED=true` validator result. The protocol is activated for internal Testnet testing with `registrar = Factory Proxy` and `defaultMarketVersion = 1`.
 
 Rules:
 

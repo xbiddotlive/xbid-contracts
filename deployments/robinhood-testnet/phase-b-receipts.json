@@ -1,0 +1,42 @@
+{
+  "chainId": 46630,
+  "activationStatus": "PHASE_B_EXECUTED_ACTIVATED",
+  "sourceCommit": "99de6f5bce367a6e54bf35ac385a5345b756f5b5",
+  "governanceSafe": "0xf72028a7f304e0585bdF7cd8BB0E0cB91fF2fBe1",
+  "timelock": "0xDD935c94d8433CF959d12Dd915bb3Cd0a245876B",
+  "operationId": "0x3ab1120dbd78b416e10c0ff5118ccc2bbf8dd293950fd0ca24d964cf29cfdd7f",
+  "schedule": {
+    "safeTxHash": "0xa0fc288dff60dc10326f4068d73133c4fbefa3681035de436afd2172a3fca7d0",
+    "safeNonce": 0,
+    "transactionHash": "0x01cab7e9fb17e4db80c2d41c94046d0e830dd192f6fc6e46ae2898519b2f84a5",
+    "blockNumber": 111173448,
+    "status": 1,
+    "scheduledAt": 1788271404,
+    "eta": 1788271704,
+    "callScheduledEventCount": 2
+  },
+  "execute": {
+    "safeTxHash": "0x48244afd87a435aca2771fc91a3177ab71532a23e8a660cea10634abba437af5",
+    "safeNonce": 1,
+    "transactionHash": "0xade450348efe2141634f0f8542d0ef768b5a5258b6bd55196a1b33efc4d17e84",
+    "blockNumber": 111176264,
+    "status": 1,
+    "executedAt": 1788271922,
+    "from": "0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91",
+    "to": "0xf72028a7f304e0585bdF7cd8BB0E0cB91fF2fBe1",
+    "gasUsed": 163035,
+    "callExecutedEventCount": 2,
+    "safeExecutionSuccess": true
+  },
+  "validation": {
+    "requireActivated": true,
+    "validatorPassed": true,
+    "safeNonceAfterExecution": 2,
+    "operationState": "DONE",
+    "isOperationDone": true,
+    "registrar": "0x8f9208FD358c62FB4052e4C2FBbCA3152A17E4b6",
+    "versionCount": 1,
+    "defaultMarketVersion": 1
+  },
+  "sourceVerification": "DEFERRED_FOR_TESTNET"
+}
