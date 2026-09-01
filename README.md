@@ -1,6 +1,8 @@
 # XBID Contracts
 
-XBID 的 Solidity + Foundry 合约仓库。当前只包含开发基线、数学候选 Benchmark 和测试骨架；正式资金逻辑必须等待 `OPEN-003` 与 `OPEN-011` 关闭。
+XBID 的 Solidity + Foundry 合约仓库。`OPEN-003` 与 `OPEN-011` 已关闭，当前已实现 Market Version 1 的 LMSR 数学、交易整数账本、不可升级 `MarketVault` / `SideToken` Clone 交易核心和资产流测试。
+
+当前代码仍是开发版本，不代表已审计或可部署主网。Crown 状态机、生产 `FeeVault`、生产 `RiskController`、Factory、Append-only Registry、部署脚本和审计仍未完成。
 
 ## Toolchain
 
@@ -18,7 +20,32 @@ git submodule update --init --recursive
 forge test
 ```
 
-## OPEN-002 Benchmark
+## 当前核心实现
+
+```text
+src/core/MarketVault.sol
+src/core/SideToken.sol
+src/libraries/XbidLmsrMath.sol
+src/libraries/XbidTradeMath.sol
+src/interfaces/IFeeVault.sol
+src/interfaces/IRiskController.sol
+```
+
+`MarketVault` 当前提供：
+
+- `previewBuy` / `buy`；
+- `previewSell` / `sell`；
+- `previewSellAll` / `sellAll`；
+- `previewFlip` / `flip`；
+- Deadline、最终资产 Slippage、Risk-Off / Full Pause；
+- Settlement Token 与 SideToken 的精确 Balance Delta；
+- Reserve、Curve Cost 与 SideToken Supply 不变量；
+- FeeVault 同步原子 Credit；
+- 交易入口重入保护。
+
+`SideToken` 是 18 decimals ERC-20 + ERC-2612 Permit Clone。只有永久绑定的 MarketVault 可以 Mint，且只能 Burn 已经转入 Vault 自身的 Token。
+
+## 验证
 
 ```bash
 forge test --gas-report
@@ -26,4 +53,6 @@ forge test --match-path test/unit/FixedPointMathCandidates.t.sol -vvv
 forge build --sizes
 ```
 
-Benchmark 候选代码位于 `src/libraries/benchmark/`，不是最终 LMSR 生产实现。当前选择 Solady `FixedPointMathLib`；稳定 log-sum-exp、业务输入边界和有利于 Reserve 的交易级舍入将在 `OPEN-003`、`OPEN-011` 中锁定。
+测试包含固定向量、Fuzz、真实 Token 资产流、恶意依赖回滚和 Stateful Invariant。`MarketVault` 状态机 Invariant 每次默认执行 `128,000` 次随机调用，持续验证 Reserve、Supply、Settlement 守恒和 Fee Credit。
+
+Benchmark 候选代码位于 `src/libraries/benchmark/`，不是生产入口。生产数学使用 Solady `FixedPointMathLib` 和已经锁定的稳定 log-sum-exp、业务输入边界及有利于 Reserve 的整数舍入。
