@@ -1,0 +1,46 @@
+name: Contracts
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.1
+      - name: Format
+        run: forge fmt --check
+      - name: Build and contract sizes
+        run: forge build --sizes
+      - name: Storage layout gate
+        run: bash scripts/check-storage-layout.sh
+      - name: Unit, integration, fuzz, and invariant tests
+        run: forge test
+
+  deep-security-test:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    env:
+      FOUNDRY_PROFILE: ci
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.1
+      - name: Deep fuzz and invariant suite
+        run: forge test

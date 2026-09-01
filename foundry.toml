@@ -9,6 +9,13 @@ solc = "0.8.30"
 evm_version = "cancun"
 optimizer = true
 optimizer_runs = 10_000
+fs_permissions = [{ access = "read-write", path = "./deployments" }]
+
+[rpc_endpoints]
+robinhood_testnet = "${ROBINHOOD_TESTNET_RPC_URL}"
+
+[etherscan]
+robinhood_testnet = { key = "empty", chain = 46630, url = "https://explorer.testnet.chain.robinhood.com/api/" }
 
 [profile.ci]
 fuzz = { runs = 10_000 }

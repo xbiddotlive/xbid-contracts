@@ -2,7 +2,7 @@
 
 XBID 的 Solidity + Foundry 合约仓库。当前已实现 Market Version 1 的 LMSR 数学、交易整数账本、不可升级 `MarketVault` / `SideToken` Clone、Crown 状态机、不可升级并 Version 化的生产 `FeeVault` / `RiskController`、Append-only `MarketRegistry`，以及使用 ERC-7201 Storage 的 UUPS `XBIDFactory`。
 
-当前代码仍是开发版本，不代表已审计或可部署主网。Testnet 部署脚本、Storage Layout CI、独立审计和 Bug Bounty 仍未完成。
+当前代码仍是开发版本，不代表已审计或可部署主网。Robinhood Testnet 两阶段部署、Manifest、链上 Validator、Source Verification 和 Storage Layout CI 已实现并通过本地 fork 演练；真实 Testnet 角色登记与部署、独立审计和 Bug Bounty 仍未完成。
 
 ## Toolchain
 
@@ -68,8 +68,22 @@ src/interfaces/IRiskController.sol
 forge test --gas-report
 forge test --match-path test/unit/FixedPointMathCandidates.t.sol -vvv
 forge build --sizes
+bash scripts/check-storage-layout.sh
 ```
 
-测试包含固定向量、Fuzz、真实 Token 资产流、恶意依赖回滚和 Stateful Invariant。`MarketVault` 状态机持续验证 Reserve、Supply、Settlement 守恒和 Fee Credit；`FeeVault` 状态机持续验证偿付能力、负债守恒、Split 守恒和 Claim Pause 下的 Credit Liveness；`RiskController` 状态机持续验证最大风险模式、Emergency 单向权限与非托管边界；`FactoryRegistry` 状态机持续验证历史 Version / Contest 不变、禁止重复或越权登记、Creation Fee 资金守恒，以及 Factory / Registry 零资金滞留。
+当前全量为 `119 passed / 0 failed`。测试包含固定向量、Fuzz、真实 Token 资产流、恶意依赖回滚和 Stateful Invariant。`MarketVault` 状态机持续验证 Reserve、Supply、Settlement 守恒和 Fee Credit；`FeeVault` 状态机持续验证偿付能力、负债守恒、Split 守恒和 Claim Pause 下的 Credit Liveness；`RiskController` 状态机持续验证最大风险模式、Emergency 单向权限与非托管边界；`FactoryRegistry` 状态机持续验证历史 Version / Contest 不变、禁止重复或越权登记、Creation Fee 资金守恒，以及 Factory / Registry 零资金滞留。
+
+## Robinhood Testnet 发布工具
+
+```text
+script/DeployRobinhoodTestnet.s.sol
+script/ValidateRobinhoodTestnet.s.sol
+deployments/robinhood-testnet/manifest.schema.json
+scripts/deploy-robinhood-testnet.sh
+scripts/validate-robinhood-testnet.sh
+scripts/verify-robinhood-testnet.sh
+```
+
+部署会先进入 `defaultMarketVersion = 0` 的不可创建状态，再由 48 小时 Governance Timelock 在同一 Batch 中切换 Registry Registrar 和默认 Version。复制 `.env.example` 后按 `xbid-docs/deployment/ROBINHOOD_TESTNET_DEPLOYMENT_RUNBOOK.md` 执行；不得跳过模拟、未激活验证或 Timelock 等待期。
 
 Benchmark 候选代码位于 `src/libraries/benchmark/`，不是生产入口。生产数学使用 Solady `FixedPointMathLib` 和已经锁定的稳定 log-sum-exp、业务输入边界及有利于 Reserve 的整数舍入。
