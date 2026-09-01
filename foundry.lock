@@ -1,0 +1,14 @@
+{
+  "lib/prb-math": {
+    "tag": {
+      "name": "v4.2.0",
+      "rev": "29a3c06c709496a8f9775dea115935befc5158a7"
+    }
+  },
+  "lib/solady": {
+    "tag": {
+      "name": "v0.1.26",
+      "rev": "acd959aa4bd04720d640bf4e6a5c71037510cc4b"
+    }
+  }
+}
