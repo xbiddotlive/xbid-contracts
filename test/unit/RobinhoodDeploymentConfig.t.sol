@@ -56,6 +56,28 @@ contract RobinhoodDeploymentConfigHarness {
             RobinhoodDeploymentConfig.SETTLEMENT_TOKEN_RUNTIME_HASH
         );
     }
+
+    function lockedRoleValues()
+        external
+        pure
+        returns (
+            address governanceSafe,
+            address emergencySafe,
+            address teamTreasury,
+            address protocolTreasury,
+            uint256 testnetDelay,
+            uint256 mainnetDelay
+        )
+    {
+        return (
+            RobinhoodDeploymentConfig.GOVERNANCE_SAFE,
+            RobinhoodDeploymentConfig.EMERGENCY_SAFE,
+            RobinhoodDeploymentConfig.TEAM_TREASURY,
+            RobinhoodDeploymentConfig.PROTOCOL_TREASURY,
+            RobinhoodDeploymentConfig.TESTNET_GOVERNANCE_DELAY,
+            RobinhoodDeploymentConfig.MAINNET_GOVERNANCE_DELAY
+        );
+    }
 }
 
 contract RobinhoodDeploymentConfigTest is Test {
@@ -71,7 +93,7 @@ contract RobinhoodDeploymentConfigTest is Test {
     function setUp() public {
         harness = new RobinhoodDeploymentConfigHarness();
         token = new MockDeploymentSettlementToken();
-        governance = new MockGovernanceTimelock(48 hours);
+        governance = new MockGovernanceTimelock(5 minutes);
     }
 
     function testLockedRobinhoodValuesCannotDrift() external {
@@ -79,6 +101,23 @@ contract RobinhoodDeploymentConfigTest is Test {
         assertEq(chainId, 46_630);
         assertEq(settlementToken, 0xAc80194dc1aE8eF52df73e7e1864fB3C62290fe0);
         assertEq(runtimeHash, 0xf45e11ddae86e83321f1f290f0e6e99f50dceb81d19b7edbf2bf1b1fbb0c9b5c);
+    }
+
+    function testLockedRolesAndEnvironmentDelaysCannotDrift() external {
+        (
+            address governanceSafe,
+            address emergencySafe,
+            address teamTreasury,
+            address protocolTreasury,
+            uint256 testnetDelay,
+            uint256 mainnetDelay
+        ) = harness.lockedRoleValues();
+        assertEq(governanceSafe, 0xf72028a7f304e0585bdF7cd8BB0E0cB91fF2fBe1);
+        assertEq(emergencySafe, 0x7f4601752bd49155c47A943893Ddb13C9f1Aa446);
+        assertEq(teamTreasury, 0x6AE1c7B6c583E50777002b70FE289321f23B8fF3);
+        assertEq(protocolTreasury, 0x786c860A8659b63Ebdf885a93a78282b2C80214b);
+        assertEq(testnetDelay, 5 minutes);
+        assertEq(mainnetDelay, 48 hours);
     }
 
     function testValidPreflightRequiresExactChainTokenAndContractGovernance() external view {
@@ -163,9 +202,9 @@ contract RobinhoodDeploymentConfigTest is Test {
             PROTOCOL
         );
 
-        MockGovernanceTimelock shortDelay = new MockGovernanceTimelock(47 hours);
+        MockGovernanceTimelock shortDelay = new MockGovernanceTimelock(5 minutes - 1);
         vm.expectRevert(
-            abi.encodeWithSelector(RobinhoodDeploymentConfig.GovernanceDelayTooShort.selector, 47 hours, 48 hours)
+            abi.encodeWithSelector(RobinhoodDeploymentConfig.GovernanceDelayTooShort.selector, 5 minutes - 1, 5 minutes)
         );
         harness.validate(
             block.chainid,

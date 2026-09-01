@@ -34,9 +34,9 @@ contract DeployRobinhoodTestnet is Script {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         address deployer = vm.addr(deployerPrivateKey);
         address governanceTimelock = vm.envAddress("XBID_GOVERNANCE_TIMELOCK");
-        address emergencyRole = vm.envAddress("XBID_EMERGENCY_ROLE");
-        address teamTreasury = vm.envAddress("XBID_TEAM_TREASURY");
-        address protocolTreasury = vm.envAddress("XBID_PROTOCOL_TREASURY");
+        address emergencyRole = RobinhoodDeploymentConfig.EMERGENCY_SAFE;
+        address teamTreasury = RobinhoodDeploymentConfig.TEAM_TREASURY;
+        address protocolTreasury = RobinhoodDeploymentConfig.PROTOCOL_TREASURY;
         string memory sourceCommit = vm.envString("SOURCE_COMMIT");
 
         RobinhoodDeploymentConfig.validateLockedPreflight(

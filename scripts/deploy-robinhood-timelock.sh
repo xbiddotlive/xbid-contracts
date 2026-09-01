@@ -6,14 +6,13 @@ CAST_BIN="${CAST_BIN:-cast}"
 
 : "${ROBINHOOD_TESTNET_RPC_URL:?ROBINHOOD_TESTNET_RPC_URL is required}"
 : "${DEPLOYER_PRIVATE_KEY:?DEPLOYER_PRIVATE_KEY is required}"
-: "${XBID_GOVERNANCE_TIMELOCK:?XBID_GOVERNANCE_TIMELOCK is required}"
 
-if [[ "${CONFIRM_ROBINHOOD_TESTNET_DEPLOYMENT:-}" != "YES" ]]; then
-  echo "Set CONFIRM_ROBINHOOD_TESTNET_DEPLOYMENT=YES after completing the runbook review." >&2
+if [[ "${CONFIRM_ROBINHOOD_TIMELOCK_DEPLOYMENT:-}" != "YES" ]]; then
+  echo "Set CONFIRM_ROBINHOOD_TIMELOCK_DEPLOYMENT=YES after confirming both Safe configurations." >&2
   exit 1
 fi
 if [[ -n "$(git status --porcelain)" ]]; then
-  echo "Refusing to deploy from a dirty worktree." >&2
+  echo "Refusing to deploy Timelock from a dirty worktree." >&2
   exit 1
 fi
 
@@ -31,9 +30,9 @@ if [[ "$balance" == "0" ]]; then
 fi
 
 export SOURCE_COMMIT="$(git rev-parse HEAD)"
-export DEPLOYMENT_OUTPUT_PATH="${DEPLOYMENT_OUTPUT_PATH:-deployments/robinhood-testnet/latest.json}"
+export TIMELOCK_OUTPUT_PATH="${TIMELOCK_OUTPUT_PATH:-deployments/robinhood-testnet/timelock.json}"
 
-"$FORGE_BIN" script script/DeployRobinhoodTestnet.s.sol:DeployRobinhoodTestnet \
+"$FORGE_BIN" script script/DeployRobinhoodTimelock.s.sol:DeployRobinhoodTimelock \
   --rpc-url "$ROBINHOOD_TESTNET_RPC_URL" \
   --broadcast \
   --slow

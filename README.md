@@ -71,19 +71,24 @@ forge build --sizes
 bash scripts/check-storage-layout.sh
 ```
 
-当前全量为 `119 passed / 0 failed`。测试包含固定向量、Fuzz、真实 Token 资产流、恶意依赖回滚和 Stateful Invariant。`MarketVault` 状态机持续验证 Reserve、Supply、Settlement 守恒和 Fee Credit；`FeeVault` 状态机持续验证偿付能力、负债守恒、Split 守恒和 Claim Pause 下的 Credit Liveness；`RiskController` 状态机持续验证最大风险模式、Emergency 单向权限与非托管边界；`FactoryRegistry` 状态机持续验证历史 Version / Contest 不变、禁止重复或越权登记、Creation Fee 资金守恒，以及 Factory / Registry 零资金滞留。
+当前全量为 `126 passed / 0 failed`。测试包含固定向量、Fuzz、真实 Token 资产流、恶意依赖回滚、Timelock 角色/等待期和 Stateful Invariant。`MarketVault` 状态机持续验证 Reserve、Supply、Settlement 守恒和 Fee Credit；`FeeVault` 状态机持续验证偿付能力、负债守恒、Split 守恒和 Claim Pause 下的 Credit Liveness；`RiskController` 状态机持续验证最大风险模式、Emergency 单向权限与非托管边界；`FactoryRegistry` 状态机持续验证历史 Version / Contest 不变、禁止重复或越权登记、Creation Fee 资金守恒，以及 Factory / Registry 零资金滞留。
 
 ## Robinhood Testnet 发布工具
 
 ```text
 script/DeployRobinhoodTestnet.s.sol
 script/ValidateRobinhoodTestnet.s.sol
+script/DeployRobinhoodTimelock.s.sol
+script/ValidateRobinhoodTimelock.s.sol
+deployments/robinhood-testnet/timelock.schema.json
 deployments/robinhood-testnet/manifest.schema.json
+scripts/deploy-robinhood-timelock.sh
+scripts/validate-robinhood-timelock.sh
 scripts/deploy-robinhood-testnet.sh
 scripts/validate-robinhood-testnet.sh
 scripts/verify-robinhood-testnet.sh
 ```
 
-部署会先进入 `defaultMarketVersion = 0` 的不可创建状态，再由 48 小时 Governance Timelock 在同一 Batch 中切换 Registry Registrar 和默认 Version。复制 `.env.example` 后按 `xbid-docs/deployment/ROBINHOOD_TESTNET_DEPLOYMENT_RUNBOOK.md` 执行；不得跳过模拟、未激活验证或 Timelock 等待期。
+Robinhood Testnet 先部署无临时管理员的 5 分钟 Governance Timelock；Governance Safe 是唯一 Proposer、Canceller 和 Executor，Emergency Safe 不拥有 Timelock 角色。协议部署后进入 `defaultMarketVersion = 0` 的不可创建状态，再由 Testnet Timelock 在同一 Batch 中切换 Registry Registrar 和默认 Version。主网延迟仍锁定为 48 小时。复制 `.env.example` 后按 `xbid-docs/deployment/ROBINHOOD_TESTNET_DEPLOYMENT_RUNBOOK.md` 执行；不得跳过 Safe 校验、模拟、未激活验证或 Timelock 等待期。
 
 Benchmark 候选代码位于 `src/libraries/benchmark/`，不是生产入口。生产数学使用 Solady `FixedPointMathLib` 和已经锁定的稳定 log-sum-exp、业务输入边界及有利于 Reserve 的整数舍入。
