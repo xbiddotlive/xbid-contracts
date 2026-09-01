@@ -46,6 +46,7 @@ contract MockSettlementToken is ERC20 {
         uint256 fee = amount * transferFeeBps / 10_000;
         super.transferFrom(from, to, amount);
         if (fee != 0) super._transfer(to, address(0xdead), fee);
+        _runTransferCallback();
         return true;
     }
 

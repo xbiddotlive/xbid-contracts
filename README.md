@@ -1,8 +1,8 @@
 # XBID Contracts
 
-XBID 的 Solidity + Foundry 合约仓库。`OPEN-003` 与 `OPEN-011` 已关闭，当前已实现 Market Version 1 的 LMSR 数学、交易整数账本、不可升级 `MarketVault` / `SideToken` Clone、Crown 状态机，以及不可升级、Version 化的生产 `FeeVault` 和 `RiskController`。
+XBID 的 Solidity + Foundry 合约仓库。当前已实现 Market Version 1 的 LMSR 数学、交易整数账本、不可升级 `MarketVault` / `SideToken` Clone、Crown 状态机、不可升级并 Version 化的生产 `FeeVault` / `RiskController`、Append-only `MarketRegistry`，以及使用 ERC-7201 Storage 的 UUPS `XBIDFactory`。
 
-当前代码仍是开发版本，不代表已审计或可部署主网。Factory、Append-only Registry、部署脚本和审计仍未完成。
+当前代码仍是开发版本，不代表已审计或可部署主网。Testnet 部署脚本、Storage Layout CI、独立审计和 Bug Bounty 仍未完成。
 
 ## Toolchain
 
@@ -12,6 +12,7 @@ XBID 的 Solidity + Foundry 合约仓库。`OPEN-003` 与 `OPEN-011` 已关闭�
 - Optimizer enabled，`10,000` runs
 - PRBMath `v4.2.0`
 - Solady `v0.1.26`
+- OpenZeppelin Contracts / Contracts Upgradeable `v5.7.0`
 
 依赖通过 Git submodule 和 `foundry.lock` 锁定。首次拉取：
 
@@ -27,6 +28,8 @@ src/core/MarketVault.sol
 src/core/SideToken.sol
 src/core/FeeVault.sol
 src/core/RiskController.sol
+src/core/MarketRegistry.sol
+src/core/XBIDFactory.sol
 src/libraries/XbidLmsrMath.sol
 src/libraries/XbidTradeMath.sol
 src/libraries/XbidCrownMath.sol
@@ -55,6 +58,10 @@ src/interfaces/IRiskController.sol
 
 `RiskController` 不可升级、不持有资金且不调用外部合约。它以常量 Gas 读取 Global 与 Per-Market 模式的较高值；Emergency Role 只能严格升档，只有 Governance Timelock 可以降档或恢复，且两个角色地址强制分离。
 
+`MarketRegistry` 不可升级，只允许当前 Registrar 顺序追加 Market Version 和 Contest。登记时同时验证 Implementation Code Hash、Solady EIP-1167 Clone Runtime Code Hash、FeeVault / RiskController Version、共同 Governance Domain，以及 MarketVault / SideToken 的双向永久绑定；旧记录不存在覆盖、删除或复用入口。
+
+`XBIDFactory` 是唯一可升级的核心创建组件。它通过 OpenZeppelin UUPS + ERC-7201 Namespaced Storage 管理未来 Contest 创建；每次创建直接把固定 5 Settlement Token 转入当前 Team Treasury，并在同一交易中确定性部署、验证和初始化一个 MarketVault 与两个 SideToken Clone，再追加 Registry 记录。Risk-Off 和 Full Pause 均阻断新建，失败时 Fee 与全部 Clone 原子回滚。Factory 不持有 Reserve 或 Creation Fee，升级不改变 Registry 历史记录。
+
 ## 验证
 
 ```bash
@@ -63,6 +70,6 @@ forge test --match-path test/unit/FixedPointMathCandidates.t.sol -vvv
 forge build --sizes
 ```
 
-测试包含固定向量、Fuzz、真实 Token 资产流、恶意依赖回滚和 Stateful Invariant。`MarketVault` 状态机持续验证 Reserve、Supply、Settlement 守恒和 Fee Credit；`FeeVault` 状态机持续验证偿付能力、负债守恒、Split 守恒和 Claim Pause 下的 Credit Liveness；`RiskController` 状态机持续验证最大风险模式、Emergency 单向权限与非托管边界。
+测试包含固定向量、Fuzz、真实 Token 资产流、恶意依赖回滚和 Stateful Invariant。`MarketVault` 状态机持续验证 Reserve、Supply、Settlement 守恒和 Fee Credit；`FeeVault` 状态机持续验证偿付能力、负债守恒、Split 守恒和 Claim Pause 下的 Credit Liveness；`RiskController` 状态机持续验证最大风险模式、Emergency 单向权限与非托管边界；`FactoryRegistry` 状态机持续验证历史 Version / Contest 不变、禁止重复或越权登记、Creation Fee 资金守恒，以及 Factory / Registry 零资金滞留。
 
 Benchmark 候选代码位于 `src/libraries/benchmark/`，不是生产入口。生产数学使用 Solady `FixedPointMathLib` 和已经锁定的稳定 log-sum-exp、业务输入边界及有利于 Reserve 的整数舍入。
