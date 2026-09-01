@@ -1,0 +1,82 @@
+{
+  "chainId": 46630,
+  "deploymentStatus": "PHASE_A_DEPLOYED_NOT_ACTIVATED",
+  "sourceCommit": "99de6f5bce367a6e54bf35ac385a5345b756f5b5",
+  "deployer": "0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91",
+  "firstReceiptBlock": 111163164,
+  "lastReceiptBlock": 111163263,
+  "validation": {
+    "requireActivated": false,
+    "validatorPassed": true,
+    "registrar": "0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91",
+    "versionCount": 1,
+    "defaultMarketVersion": 0
+  },
+  "sourceVerification": "PENDING_EXPLICIT_AUTHORIZATION",
+  "transactions": [
+    {
+      "name": "MarketRegistry deployment",
+      "hash": "0xddaf398330f46a3c0e295cd04b9dd3f435e306fa1d2cf4e9b327325c5f387d35",
+      "blockNumber": 111163164,
+      "status": 1,
+      "gasUsed": 2345966,
+      "contractAddress": "0x0B68fD82965Fd853907CA4E2f7E6E6d478Aaef8b"
+    },
+    {
+      "name": "RiskController deployment",
+      "hash": "0x1534bcdb01a756b157e9c8d600571ca76ae7e4b664b6850f4168cfb057059aff",
+      "blockNumber": 111163174,
+      "status": 1,
+      "gasUsed": 659176,
+      "contractAddress": "0xfeebdbB42de39B95f8dE5FcdBDd11e986443c278"
+    },
+    {
+      "name": "FeeVault deployment",
+      "hash": "0x522d4bb0c00014036ad3a17ef452d066171d1d34bc5e59e8aecbf67fdb7ed04c",
+      "blockNumber": 111163184,
+      "status": 1,
+      "gasUsed": 1766617,
+      "contractAddress": "0x82D9159cB488175cAcdcD145A7285d80563e69d0"
+    },
+    {
+      "name": "MarketVault implementation deployment",
+      "hash": "0x9618e7211fdfc77eb45ddcfb0e83345aeec5489ba20016cdf813ecf14f12ed0d",
+      "blockNumber": 111163201,
+      "status": 1,
+      "gasUsed": 4043656,
+      "contractAddress": "0x532C6424877c9f73C5eBA6792F985555aF889A7a"
+    },
+    {
+      "name": "SideToken implementation deployment",
+      "hash": "0x36e96eae5b49db9c12719632324335c8a860ca4e65e55058019f2c8b9cc1f9c6",
+      "blockNumber": 111163223,
+      "status": 1,
+      "gasUsed": 1025436,
+      "contractAddress": "0xdfF5Ed954cFC2ba873539Ffbd093e072C3a38d9C"
+    },
+    {
+      "name": "XBIDFactory implementation deployment",
+      "hash": "0xf4dfa955fdaa790a2c8c7655ce1799db97c5d5664cc5383e433581b98c2718a9",
+      "blockNumber": 111163247,
+      "status": 1,
+      "gasUsed": 3015476,
+      "contractAddress": "0x7452C544995ca53Ae542d14679b9Cc11eD646481"
+    },
+    {
+      "name": "ERC1967Proxy deployment and initialization",
+      "hash": "0xa1af878f44f27f63354d3d5465b8b951bfb5336d07c8ba258451a494defec466",
+      "blockNumber": 111163255,
+      "status": 1,
+      "gasUsed": 289182,
+      "contractAddress": "0x8f9208FD358c62FB4052e4C2FBbCA3152A17E4b6"
+    },
+    {
+      "name": "Market Version 1 registration",
+      "hash": "0x6a985b7b8cb4b09a4c2986d2868cef135f5d3ddb686bb92ed288abcdf3200e68",
+      "blockNumber": 111163263,
+      "status": 1,
+      "gasUsed": 318484,
+      "contractAddress": "0x0B68fD82965Fd853907CA4E2f7E6E6d478Aaef8b"
+    }
+  ]
+}
