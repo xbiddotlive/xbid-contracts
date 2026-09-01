@@ -12,7 +12,7 @@
     "versionCount": 1,
     "defaultMarketVersion": 0
   },
-  "sourceVerification": "PENDING_EXPLICIT_AUTHORIZATION",
+  "sourceVerification": "DEFERRED_FOR_TESTNET",
   "transactions": [
     {
       "name": "MarketRegistry deployment",
