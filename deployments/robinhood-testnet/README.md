@@ -8,6 +8,10 @@ Protocol contract source verification is intentionally deferred for the current 
 
 `phase-b-schedule.safe.json` is the Safe Transaction Builder v1.0 import file for the schedule transaction only. It deliberately contains one raw `CALL` to the Timelock, never the later execute transaction. Verify the Safe address, chain ID, target, value, decoded method and operation ID in the Safe UI before signing.
 
+Phase B operation `0x3ab1120dbd78b416e10c0ff5118ccc2bbf8dd293950fd0ca24d964cf29cfdd7f` was scheduled in transaction `0x01cab7e9fb17e4db80c2d41c94046d0e830dd192f6fc6e46ae2898519b2f84a5`, block `111173448`, with ETA `1788271704`. Do not use a Safe creation transaction hash as schedule evidence.
+
+`phase-b-execute.safe.json` contains the separate one-transaction `executeBatch` Safe import. It must not be imported, signed, or executed until the Timelock reports this exact operation as Ready.
+
 Rules:
 
 - Never hand-edit a generated manifest.
