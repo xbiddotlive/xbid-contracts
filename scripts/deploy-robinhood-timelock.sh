@@ -36,3 +36,5 @@ export TIMELOCK_OUTPUT_PATH="${TIMELOCK_OUTPUT_PATH:-deployments/robinhood-testn
   --rpc-url "$ROBINHOOD_TESTNET_RPC_URL" \
   --broadcast \
   --slow
+
+bash scripts/finalize-robinhood-timelock-manifest.sh "$TIMELOCK_OUTPUT_PATH"

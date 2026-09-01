@@ -1,0 +1,20 @@
+{
+  "admin": "0xDD935c94d8433CF959d12Dd915bb3Cd0a245876B",
+  "canceller": "0xf72028a7f304e0585bdF7cd8BB0E0cB91fF2fBe1",
+  "chainId": 46630,
+  "deployer": "0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91",
+  "deploymentBlock": 111154145,
+  "deploymentTransactionHash": "0x90eb49a84db105b9733d228299f0389350f2c91d5a365fe541ad64ed84714c56",
+  "emergencySafe": "0x7f4601752bd49155c47A943893Ddb13C9f1Aa446",
+  "environment": "robinhood-testnet",
+  "executor": "0xf72028a7f304e0585bdF7cd8BB0E0cB91fF2fBe1",
+  "governanceSafe": "0xf72028a7f304e0585bdF7cd8BB0E0cB91fF2fBe1",
+  "manifestVersion": 1,
+  "minimumDelaySeconds": 300,
+  "proposer": "0xf72028a7f304e0585bdF7cd8BB0E0cB91fF2fBe1",
+  "simulationBlock": 11612812,
+  "sourceCommit": "586b0df55aa123154e4d2163129bba3731ee8da0",
+  "status": "ACTIVE",
+  "timelock": "0xDD935c94d8433CF959d12Dd915bb3Cd0a245876B",
+  "timelockCodeHash": "0x192479fd8812bfa90f4d980b6b408d93877614bff4c326ba5500b05d36f7221f"
+}

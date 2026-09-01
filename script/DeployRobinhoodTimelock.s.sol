@@ -50,9 +50,11 @@ contract DeployRobinhoodTimelock is Script {
         string memory object = "timelock";
         vm.serializeUint(object, "manifestVersion", 1);
         vm.serializeString(object, "environment", "robinhood-testnet");
-        vm.serializeString(object, "status", "ACTIVE");
+        vm.serializeString(object, "status", "PENDING_RECEIPT_FINALIZATION");
         vm.serializeUint(object, "chainId", block.chainid);
-        vm.serializeUint(object, "deploymentBlock", block.number);
+        vm.serializeUint(object, "simulationBlock", block.number);
+        vm.serializeUint(object, "deploymentBlock", 0);
+        vm.serializeBytes32(object, "deploymentTransactionHash", bytes32(0));
         vm.serializeString(object, "sourceCommit", sourceCommit);
         vm.serializeAddress(object, "deployer", deployer);
         vm.serializeAddress(object, "governanceSafe", RobinhoodDeploymentConfig.GOVERNANCE_SAFE);

@@ -83,12 +83,14 @@ script/ValidateRobinhoodTimelock.s.sol
 deployments/robinhood-testnet/timelock.schema.json
 deployments/robinhood-testnet/manifest.schema.json
 scripts/deploy-robinhood-timelock.sh
+scripts/finalize-robinhood-timelock-manifest.sh
 scripts/validate-robinhood-timelock.sh
+scripts/verify-robinhood-timelock.sh
 scripts/deploy-robinhood-testnet.sh
 scripts/validate-robinhood-testnet.sh
 scripts/verify-robinhood-testnet.sh
 ```
 
-Robinhood Testnet 先部署无临时管理员的 5 分钟 Governance Timelock；Governance Safe 是唯一 Proposer、Canceller 和 Executor，Emergency Safe 不拥有 Timelock 角色。协议部署后进入 `defaultMarketVersion = 0` 的不可创建状态，再由 Testnet Timelock 在同一 Batch 中切换 Registry Registrar 和默认 Version。主网延迟仍锁定为 48 小时。复制 `.env.example` 后按 `xbid-docs/deployment/ROBINHOOD_TESTNET_DEPLOYMENT_RUNBOOK.md` 执行；不得跳过 Safe 校验、模拟、未激活验证或 Timelock 等待期。
+Robinhood Testnet 已在 `0xDD935c94d8433CF959d12Dd915bb3Cd0a245876B` 部署无临时管理员的 5 分钟 Governance Timelock；Governance Safe 是唯一 Proposer、Canceller 和 Executor，Emergency Safe 不拥有 Timelock 角色。协议部署后进入 `defaultMarketVersion = 0` 的不可创建状态，再由 Testnet Timelock 在同一 Batch 中切换 Registry Registrar 和默认 Version。主网延迟仍锁定为 48 小时。复制 `.env.example` 后按 `xbid-docs/deployment/ROBINHOOD_TESTNET_DEPLOYMENT_RUNBOOK.md` 执行；不得跳过 Safe 校验、模拟、未激活验证或 Timelock 等待期。
 
 Benchmark 候选代码位于 `src/libraries/benchmark/`，不是生产入口。生产数学使用 Solady `FixedPointMathLib` 和已经锁定的稳定 log-sum-exp、业务输入边界及有利于 Reserve 的整数舍入。

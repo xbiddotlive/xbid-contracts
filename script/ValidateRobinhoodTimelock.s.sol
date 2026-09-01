@@ -16,6 +16,10 @@ contract ValidateRobinhoodTimelock is Script {
         _require(block.chainid == RobinhoodDeploymentConfig.CHAIN_ID, "runtime chain id");
         _require(vm.parseJsonUint(json, ".manifestVersion") == 1, "manifest version");
         _require(vm.parseJsonUint(json, ".chainId") == RobinhoodDeploymentConfig.CHAIN_ID, "manifest chain id");
+        _require(keccak256(bytes(vm.parseJsonString(json, ".status"))) == keccak256(bytes("ACTIVE")), "manifest status");
+        _require(vm.parseJsonUint(json, ".simulationBlock") > 0, "simulation block");
+        _require(vm.parseJsonUint(json, ".deploymentBlock") > 0, "deployment block");
+        _require(vm.parseJsonBytes32(json, ".deploymentTransactionHash") != bytes32(0), "deployment transaction");
         _require(
             vm.parseJsonAddress(json, ".governanceSafe") == RobinhoodDeploymentConfig.GOVERNANCE_SAFE, "governance safe"
         );
