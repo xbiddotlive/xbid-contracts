@@ -93,4 +93,6 @@ scripts/verify-robinhood-testnet.sh
 
 Robinhood Testnet 已在 `0xDD935c94d8433CF959d12Dd915bb3Cd0a245876B` 部署无临时管理员的 5 分钟 Governance Timelock；Governance Safe 是唯一 Proposer、Canceller 和 Executor，Emergency Safe 不拥有 Timelock 角色。Timelock 源码已在 Robinhood Testnet Blockscout 公开验证。协议 Phase B 已通过 Timelock 原子 Batch 激活：Registry Registrar 为 Factory Proxy，`defaultMarketVersion = 1`，`REQUIRE_ACTIVATED=true` Validator 通过。协议合约源码公开验证按内部 Testnet 决策暂缓，Public Testnet/Mainnet 前必须补齐；主网延迟仍锁定为 48 小时。复制 `.env.example` 后按 `xbid-docs/deployment/ROBINHOOD_TESTNET_DEPLOYMENT_RUNBOOK.md` 执行；不得跳过 Safe 校验、模拟、未激活验证或 Timelock 等待期。
 
+真实 Robinhood Testnet E2E 统一归档在 `testnet-e2e/rounds/`，每轮使用独立目录、Salt、测试计划、原始数据、交易回执和结论。`scripts/run-robinhood-testnet-e2e.sh` 只接受目录中已经评审的 Round，并在广播前验证一次性 Testnet 私钥精确对应锁定测试地址；不得把本地 Fork 冒充真实 E2E，也不得把私钥、Mnemonic、Safe Signature 或 RPC Credential 写入归档。
+
 Benchmark 候选代码位于 `src/libraries/benchmark/`，不是生产入口。生产数学使用 Solady `FixedPointMathLib` 和已经锁定的稳定 log-sum-exp、业务输入边界及有利于 Reserve 的整数舍入。

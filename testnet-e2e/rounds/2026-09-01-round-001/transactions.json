@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "roundId": "2026-09-01-round-001",
+  "transactions": [
+    {
+      "caseId": "PRE-003",
+      "purpose": "Fund the locked E2E account with 100,000 permissionlessly mintable Test USDC",
+      "transactionHash": "0xf12e5ea1833c7c7a7e2db7752f3868f82b7140799fd3d67944fa351ed58956f6",
+      "blockNumber": 111181140,
+      "timestamp": 1788272762,
+      "from": "0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91",
+      "to": "0xAc80194dc1aE8eF52df73e7e1864fB3C62290fe0",
+      "status": 1,
+      "gasUsed": 57363,
+      "mintRecipient": "0x22b12cbad5a3ea288feb71df4cf52e4f08529cbc",
+      "mintUnits": "100000000000"
+    }
+  ]
+}

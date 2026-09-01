@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "roundId": "2026-09-01-round-001",
+  "status": "BLOCKED_AWAITING_ACCOUNT_SIGNER",
+  "network": {
+    "name": "Robinhood Chain Testnet",
+    "chainId": 46630,
+    "preflightBlock": 111181599
+  },
+  "account": {
+    "address": "0x22b12cbad5a3ea288feb71df4cf52e4f08529cbc",
+    "code": "0x",
+    "nonce": 0,
+    "nativeBalanceWei": "20000000000000000",
+    "testUsdcBalanceUnits": "100000000000",
+    "factoryAllowanceUnits": "0",
+    "localSignerAvailable": false
+  },
+  "contracts": {
+    "settlementToken": "0xAc80194dc1aE8eF52df73e7e1864fB3C62290fe0",
+    "factoryProxy": "0x8f9208FD358c62FB4052e4C2FBbCA3152A17E4b6",
+    "marketRegistry": "0x0B68fD82965Fd853907CA4E2f7E6E6d478Aaef8b",
+    "riskController": "0xfeebdbB42de39B95f8dE5FcdBDd11e986443c278",
+    "feeVault": "0x82D9159cB488175cAcdcD145A7285d80563e69d0",
+    "teamTreasury": "0x6AE1c7B6c583E50777002b70FE289321f23B8fF3",
+    "protocolTreasury": "0x786c860A8659b63Ebdf885a93a78282b2C80214b"
+  },
+  "activationBaseline": {
+    "registrar": "0x8f9208FD358c62FB4052e4C2FBbCA3152A17E4b6",
+    "defaultMarketVersion": 1,
+    "globalRiskMode": 0
+  },
+  "feeBaseline": {
+    "teamTreasuryBalanceUnits": "0",
+    "protocolClaimableUnits": "0",
+    "accountClaimableUnits": "0",
+    "totalLiabilityUnits": "0",
+    "feeVaultTokenBalanceUnits": "0"
+  },
+  "lockedInputs": {
+    "creationFeeUnits": "5000000",
+    "buyGrossUnits": "10000000000",
+    "minimumStartingTestUsdcUnits": "20000000000",
+    "slippageBps": 50,
+    "sideAName": "XBID E2E Alpha",
+    "sideASymbol": "E2EA",
+    "sideBName": "XBID E2E Beta",
+    "sideBSymbol": "E2EB"
+  },
+  "knownLimitations": [
+    "The settlement token is permissionlessly mintable and has no real value.",
+    "No transaction may be attributed to the user EOA until it signs that transaction.",
+    "Governance and emergency cases require separate Safe-backed rounds."
+  ]
+}
