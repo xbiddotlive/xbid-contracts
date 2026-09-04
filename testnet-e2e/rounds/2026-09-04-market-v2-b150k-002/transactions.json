@@ -1,0 +1,18 @@
+{
+  "status": "PASSED",
+  "chainId": 46630,
+  "transactions": [
+    {"sequence": 1, "function": "approve factory", "hash": "0xb78543e9b7aca93aaa8bfc83a3e8721728cbd7e36309e4db4b9137ee59edf03c", "blockNumber": 112627918, "gasUsed": 51779, "status": 1},
+    {"sequence": 2, "function": "createContest", "hash": "0xe0e203e778d6b07ad6853f9ce0691c5a7960af064da5aaa31e2b9bcb1e6ccb53", "blockNumber": 112627938, "gasUsed": 891908, "status": 1},
+    {"sequence": 3, "function": "approve market settlement", "hash": "0x3054aec00c5221034528e6e88f2329444597bba96bfb7b6971265f8a576757bb", "blockNumber": 112627950, "gasUsed": 51791, "status": 1},
+    {"sequence": 4, "function": "buy side A", "hash": "0x16b5420ffa2676ebd9cfaa2ddaa91f1966a47fdd305c6862f6423e30c2336c55", "blockNumber": 112627966, "gasUsed": 370219, "status": 1},
+    {"sequence": 5, "function": "approve side A", "hash": "0xc9a3fc1f0c6ddf857da395dd1e885b63e4706ffb690ca0126512bb010fca2bb4", "blockNumber": 112627984, "gasUsed": 54601, "status": 1},
+    {"sequence": 6, "function": "flip A to B", "hash": "0x5d4588f36abe4855289cb38f0a7e4cd011150d94911855f157d21d3259a35cf9", "blockNumber": 112627988, "gasUsed": 288766, "status": 1},
+    {"sequence": 7, "function": "approve side B", "hash": "0x64eb346e327b62374173074cc78178f616f95c68441f6d04bf3e5c3e23ebb981", "blockNumber": 112628006, "gasUsed": 54601, "status": 1},
+    {"sequence": 8, "function": "sell side B", "hash": "0xd81c62d2114cbac186c0d49c668e07f7a2316961b7d03b522b5301b77ed00a82", "blockNumber": 112628024, "gasUsed": 214938, "status": 1},
+    {"sequence": 9, "function": "sellAll side B", "hash": "0xc9bf7d8875593aa1222476116e1d21dc7973e7ef14f0f4c065788c76af4cbde8", "blockNumber": 112628041, "gasUsed": 201860, "status": 1},
+    {"sequence": 10, "function": "sellAll side A", "hash": "0x2b3c9cf41309ed6653a43c5b7475917f7a360c3e1472ab027e647c2d0863439b", "blockNumber": 112628057, "gasUsed": 192955, "status": 1},
+    {"sequence": 11, "function": "claim creator fees", "hash": "0x8466d8f90b957f40d94bd27b14d623115ca9a45696561cd86370cdc5a87e88c0", "blockNumber": 112628079, "gasUsed": 61784, "status": 1},
+    {"sequence": 12, "function": "claim referrer fees", "hash": "0x054faa5f0043e4f789cc5ebeadc97bedf1b0fdbf26a1c340784b211f7ff1d94e", "blockNumber": 112628096, "gasUsed": 80411, "status": 1}
+  ]
+}

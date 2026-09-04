@@ -17,6 +17,10 @@ interface ITestSettlementToken {
     function mint(address account, uint256 amount) external returns (bool);
 }
 
+interface IMarketVersionConfig {
+    function bWad() external view returns (uint256);
+}
+
 /// @notice Executes the standard user-path E2E round against the activated
 /// Robinhood Testnet deployment. Governance and emergency cases are deliberately
 /// excluded because they require their respective Safes and a separate round.
@@ -44,6 +48,8 @@ contract RunRobinhoodTestnetE2E is Script {
     struct RunResult {
         address account;
         address referrer;
+        uint32 marketVersion;
+        uint256 bWad;
         bytes32 contestId;
         bytes32 metadataHash;
         address market;
@@ -67,11 +73,14 @@ contract RunRobinhoodTestnetE2E is Script {
         string memory resultPath = vm.envString("E2E_RESULT_PATH");
         bool fundIfNeeded = vm.envOr("E2E_FUND_IF_NEEDED", false);
 
+        RunResult memory result;
+        _loadMarketExpectations(result);
+
         _require(block.chainid == CHAIN_ID, "chain id");
         _require(vm.addr(privateKey) == expectedAccount, "private key/account mismatch");
         _require(expectedAccount.balance > 0, "test account gas balance");
         _require(REGISTRY.registrar() == address(FACTORY), "registry registrar");
-        _require(FACTORY.defaultMarketVersion() == 1, "default market version");
+        _require(FACTORY.defaultMarketVersion() == result.marketVersion, "default market version");
         _require(uint8(RISK_CONTROLLER.globalMode()) == 0, "global risk mode");
 
         ITestSettlementToken token = ITestSettlementToken(SETTLEMENT_TOKEN);
@@ -81,13 +90,13 @@ contract RunRobinhoodTestnetE2E is Script {
         }
         _require(FEE_VAULT.claimable(expectedAccount) == 0, "pre-existing creator claimable");
 
-        RunResult memory result;
         result.account = expectedAccount;
         result.referrer = _roundReferrer(roundId, expectedAccount);
         result.metadataHash = keccak256(abi.encode("XBID_TESTNET_E2E_METADATA", roundId, expectedAccount));
         bytes32 userSalt = keccak256(abi.encode("XBID_TESTNET_E2E_SALT", roundId, expectedAccount));
         result.contestId = FACTORY.computeContestId(expectedAccount, userSalt, result.metadataHash);
-        (result.market, result.sideA, result.sideB) = FACTORY.predictContestAddresses(result.contestId, 1);
+        (result.market, result.sideA, result.sideB) =
+            FACTORY.predictContestAddresses(result.contestId, result.marketVersion);
 
         IMarketRegistry.ContestRecord memory existing = REGISTRY.getContest(CHAIN_ID, result.contestId);
         _require(existing.marketVault == address(0), "round contest already exists");
@@ -222,9 +231,13 @@ contract RunRobinhoodTestnetE2E is Script {
         _require(record.creator == result.account, "registered creator");
         _require(record.marketVault == result.market, "registered market");
         _require(record.sideAToken == result.sideA && record.sideBToken == result.sideB, "registered sides");
-        _require(record.versionId == 1 && record.metadataHash == result.metadataHash, "registered version metadata");
+        _require(
+            record.versionId == result.marketVersion && record.metadataHash == result.metadataHash,
+            "registered version metadata"
+        );
         _require(REGISTRY.isRegisteredMarket(result.market), "registered market index");
-        _require(market.creator() == result.account && market.marketVersion() == 1, "market binding");
+        _require(market.creator() == result.account && market.marketVersion() == result.marketVersion, "market binding");
+        _require(IMarketVersionConfig(result.market).bWad() == result.bWad, "market b");
         _require(sideA.marketVault() == result.market && sideB.marketVault() == result.market, "token binding");
         _require(sideA.balanceOf(result.account) == 0 && sideB.balanceOf(result.account) == 0, "sell all balances");
         _require(sideA.totalSupply() == market.qAWei() && sideB.totalSupply() == market.qBWei(), "supply quantities");
@@ -267,6 +280,13 @@ contract RunRobinhoodTestnetE2E is Script {
         }
     }
 
+    function _loadMarketExpectations(RunResult memory result) private {
+        uint256 expectedVersionValue = vm.envOr("E2E_EXPECTED_MARKET_VERSION", uint256(2));
+        _require(expectedVersionValue <= type(uint32).max, "expected market version range");
+        result.marketVersion = uint32(expectedVersionValue);
+        result.bWad = vm.envOr("E2E_EXPECTED_B_WAD", uint256(150_000e18));
+    }
+
     function _writeResult(string memory roundId, string memory resultPath, RunResult memory result) private {
         string memory object = "e2e-result";
         vm.serializeString(object, "status", "SCRIPT_COMPLETED");
@@ -276,6 +296,8 @@ contract RunRobinhoodTestnetE2E is Script {
         vm.serializeUint(object, "observedTimestamp", block.timestamp);
         vm.serializeAddress(object, "account", result.account);
         vm.serializeAddress(object, "referrer", result.referrer);
+        vm.serializeUint(object, "marketVersion", result.marketVersion);
+        vm.serializeUint(object, "bWad", result.bWad);
         vm.serializeBytes32(object, "contestId", result.contestId);
         vm.serializeBytes32(object, "metadataHash", result.metadataHash);
         vm.serializeAddress(object, "marketVault", result.market);

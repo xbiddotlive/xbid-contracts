@@ -128,7 +128,13 @@ contract ValidateRobinhoodTestnet is Script {
     function _validateVersion(Manifest memory manifest) private view {
         MarketRegistry registry = MarketRegistry(manifest.registry);
         _require(registry.governanceTimelock() == manifest.governance, "registry governance");
-        _require(registry.versionCount() == 1 && registry.versionIdAt(0) == 1, "registry versions");
+        uint256 expectedVersionCount = vm.envOr("EXPECTED_REGISTRY_VERSION_COUNT", uint256(2));
+        if (!vm.envOr("REQUIRE_ACTIVATED", true)) expectedVersionCount = 1;
+        _require(expectedVersionCount != 0 && expectedVersionCount <= type(uint32).max, "expected version count");
+        _require(registry.versionCount() == expectedVersionCount, "registry version count");
+        for (uint256 index; index < expectedVersionCount; ++index) {
+            _require(registry.versionIdAt(index) == index + 1, "registry version id");
+        }
 
         IMarketRegistry.MarketVersion memory version = registry.getVersion(1);
         _require(version.marketImplementation == manifest.marketImplementation, "market implementation");
@@ -208,7 +214,11 @@ contract ValidateRobinhoodTestnet is Script {
         XBIDFactory factory = XBIDFactory(manifest.factory);
         if (vm.envOr("REQUIRE_ACTIVATED", true)) {
             _require(registry.registrar() == manifest.factory, "activated registrar");
-            _require(factory.defaultMarketVersion() == 1, "activated default version");
+            uint256 expectedDefaultVersion = vm.envOr("EXPECTED_DEFAULT_MARKET_VERSION", uint256(2));
+            _require(
+                expectedDefaultVersion != 0 && expectedDefaultVersion <= type(uint32).max, "expected default version"
+            );
+            _require(factory.defaultMarketVersion() == expectedDefaultVersion, "activated default version");
         } else {
             _require(registry.registrar() == manifest.deployer, "pending registrar");
             _require(factory.defaultMarketVersion() == 0, "pending default version");

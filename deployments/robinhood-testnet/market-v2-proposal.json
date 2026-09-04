@@ -29,6 +29,8 @@
   "timelockReadyAt": 1788486762,
   "executeSafeNonce": 3,
   "executeSafeTransactionHash": "0xf92916b363f6a01f05aabbe73c9c1b06745f9d0c995a4efe79e2bf8ac47fd910",
+  "executeExecutionTransactionHash": "0xb1a9063d0978e66b50438354b42c3763489d7ce58f7f812532aa23dc3464b694",
+  "executeExecutionBlockNumber": 112623091,
   "ownerApprovals": [
     {
       "owner": "0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91",
@@ -45,5 +47,18 @@
       "approvedHash": true
     }
   ],
-  "status": "PENDING_SAFE_EXECUTE"
+  "validation": {
+    "safeNonceAfterExecution": 4,
+    "operationState": "DONE",
+    "isOperationDone": true,
+    "versionCount": 2,
+    "versionIds": [1, 2],
+    "defaultMarketVersion": 2,
+    "v1BWad": "270000000000000000000000",
+    "v2BWad": "150000000000000000000000",
+    "v2SmokeRound": "2026-09-04-market-v2-b150k-002",
+    "v2SmokeContestId": "0x0a468bad6bbd871d33f7d95f49d18e51c38c52c0cc71378fb19735b0581e43e1",
+    "v2SmokeMarket": "0x4C707EB7F24116F9862f02482FA7583fC35FF3B6"
+  },
+  "status": "ACTIVATED_AND_VALIDATED"
 }

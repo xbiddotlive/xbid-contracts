@@ -1,0 +1,22 @@
+{
+  "status": "LOCKED",
+  "roundId": "2026-09-04-market-v2-b150k-002",
+  "chainId": 46630,
+  "preflightBlock": 112627434,
+  "account": "0x22B12Cbad5a3EA288fEB71Df4Cf52E4F08529cbc",
+  "factory": "0x8f9208FD358c62FB4052e4C2FBbCA3152A17E4b6",
+  "registry": "0x0B68fD82965Fd853907CA4E2f7E6E6d478Aaef8b",
+  "settlementToken": "0xAc80194dc1aE8eF52df73e7e1864fB3C62290fe0",
+  "expectedMarketVersion": 2,
+  "expectedBWad": "150000000000000000000000",
+  "buyGrossUnits": "10000000000",
+  "preflightTestUsdcUnits": "29804130670",
+  "preflightEth": "0.019970628540000000",
+  "metadataHash": "0x5f53a9a9cc229a40fabdd21de3cce4fc5cd9c80ab9eed5f518846fb122f4e11c",
+  "userSalt": "0x8fbacea444230ed90a719deaece1c1972e3a3831c27f788ee9f12a45498872db",
+  "contestId": "0x0a468bad6bbd871d33f7d95f49d18e51c38c52c0cc71378fb19735b0581e43e1",
+  "predictedMarketVault": "0x4C707EB7F24116F9862f02482FA7583fC35FF3B6",
+  "predictedSideAToken": "0x8984B7497b5EE32591889DE8775411B5295DdadF",
+  "predictedSideBToken": "0xF7641e674B6E6040FBA2d308dA426F2849DAa508",
+  "activationTransactionHash": "0xb1a9063d0978e66b50438354b42c3763489d7ce58f7f812532aa23dc3464b694"
+}

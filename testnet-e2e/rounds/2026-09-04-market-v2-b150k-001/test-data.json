@@ -1,0 +1,20 @@
+{
+  "status": "LOCKED",
+  "roundId": "2026-09-04-market-v2-b150k-001",
+  "chainId": 46630,
+  "preflightBlock": 112626287,
+  "account": "0x22B12Cbad5a3EA288fEB71Df4Cf52E4F08529cbc",
+  "factory": "0x8f9208FD358c62FB4052e4C2FBbCA3152A17E4b6",
+  "registry": "0x0B68fD82965Fd853907CA4E2f7E6E6d478Aaef8b",
+  "settlementToken": "0xAc80194dc1aE8eF52df73e7e1864fB3C62290fe0",
+  "expectedMarketVersion": 2,
+  "expectedBWad": "150000000000000000000000",
+  "buyGrossUnits": "10000000000",
+  "preflightTestUsdcUnits": "29804130670",
+  "preflightEth": "0.019970628540000000",
+  "contestId": "0xecadd3bca88681027bad7b4cd5e79b0ed855a1ac4aea050e39c08ee8f923279d",
+  "predictedMarketVault": "0x0f4220Da036D61163eb49A0Da9054dfE32E2Ce62",
+  "predictedSideAToken": "0x9115C51DC9833084860B77Cd3571eBaFD77492A1",
+  "predictedSideBToken": "0x9B2dc279aae13035f377e7950066FFfb75A3E092",
+  "activationTransactionHash": "0xb1a9063d0978e66b50438354b42c3763489d7ce58f7f812532aa23dc3464b694"
+}
