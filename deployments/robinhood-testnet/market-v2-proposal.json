@@ -22,5 +22,15 @@
   ],
   "scheduleFile": "market-v2-schedule.safe.json",
   "executeFile": "market-v2-execute.safe.json",
-  "status": "PENDING_SAFE_SCHEDULE"
+  "scheduleSafeNonce": 2,
+  "scheduleSafeTransactionHash": "0x88a3938e850603b8bc702c68d3c963c2ec02a2d2616074f0ffb203e049f922c7",
+  "ownerApprovals": [
+    {
+      "owner": "0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91",
+      "transactionHash": "0x5d260288cce9a01bd3f79a095dd839cc22efe4affc198ee2d7802c20e738b75d",
+      "blockNumber": 112607254,
+      "approvedHash": true
+    }
+  ],
+  "status": "PENDING_SECOND_SAFE_APPROVAL"
 }
