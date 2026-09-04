@@ -6,6 +6,7 @@ import {Test} from "solady/test/utils/forge-std/Test.sol";
 import {FeeVault} from "../../src/core/FeeVault.sol";
 import {MarketRegistry} from "../../src/core/MarketRegistry.sol";
 import {MarketVault} from "../../src/core/MarketVault.sol";
+import {MarketVaultV2} from "../../src/core/MarketVaultV2.sol";
 import {RiskController} from "../../src/core/RiskController.sol";
 import {SideToken} from "../../src/core/SideToken.sol";
 import {XBIDFactory} from "../../src/core/XBIDFactory.sol";
@@ -34,6 +35,7 @@ contract FactoryRegistryTest is Test {
     FeeVault private feeVault;
     RiskController private riskController;
     MarketVault private marketImplementation;
+    MarketVaultV2 private marketImplementationV2;
     SideToken private sideTokenImplementation;
     XBIDFactory private factoryImplementation;
     XBIDFactory private factory;
@@ -46,6 +48,7 @@ contract FactoryRegistryTest is Test {
             1, address(usdc), address(registry), GOVERNANCE, EMERGENCY, TEAM_TREASURY, 7_000, 2_000, 1_000
         );
         marketImplementation = new MarketVault();
+        marketImplementationV2 = new MarketVaultV2();
         sideTokenImplementation = new SideToken();
         factoryImplementation = new XBIDFactory();
 
@@ -261,6 +264,35 @@ contract FactoryRegistryTest is Test {
         assertEq(versionOneAfter.abiVersion, versionOneBefore.abiVersion);
     }
 
+    function testDefaultVersionTwoCreatesB150kMarketAndPreservesVersionOne() external {
+        IMarketRegistry.VersionRegistration memory versionTwo = _versionRegistration(2);
+        vm.prank(GOVERNANCE);
+        factory.registerMarketVersion(versionTwo);
+        vm.prank(GOVERNANCE);
+        factory.setDefaultMarketVersion(2);
+
+        bytes32 versionTwoHash = keccak256("market-v2");
+        vm.prank(CREATOR);
+        (bytes32 contestId, address marketAddress,,) =
+            factory.createContest(_createParams(versionTwoHash, keccak256("market-v2-salt")));
+
+        MarketVaultV2 marketV2 = MarketVaultV2(marketAddress);
+        assertEq(marketV2.marketVersion(), 2);
+        assertEq(marketV2.bWad(), 150_000e18);
+        assertEq(registry.getContest(block.chainid, contestId).versionId, 2);
+        assertEq(MarketVault(address(marketImplementation)).bWad(), 270_000e18);
+        assertEq(registry.getVersion(1).marketImplementation, address(marketImplementation));
+
+        vm.startPrank(CREATOR);
+        usdc.approve(marketAddress, type(uint256).max);
+        uint256 output = marketV2.buy(MarketVaultV2.Side.A, 10_000_000, 0, block.timestamp, address(0));
+        SideToken(registry.getContest(block.chainid, contestId).sideAToken).approve(marketAddress, output);
+        marketV2.sellAll(MarketVaultV2.Side.A, output, 0, block.timestamp);
+        vm.stopPrank();
+
+        assertLe(marketV2.reserveUnits(), 1);
+    }
+
     function testRegistryRejectsUnauthorizedAndInvalidVersionMetadata() external {
         IMarketRegistry.VersionRegistration memory versionTwo = _versionRegistration(2);
         vm.expectRevert(MarketRegistry.Unauthorized.selector);
@@ -273,9 +305,9 @@ contract FactoryRegistryTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 MarketRegistry.InvalidCloneRuntimeCodeHash.selector,
-                address(marketImplementation),
+                address(marketImplementationV2),
                 bytes32(uint256(1)),
-                registry.expectedCloneRuntimeCodeHash(address(marketImplementation))
+                registry.expectedCloneRuntimeCodeHash(address(marketImplementationV2))
             )
         );
         vm.prank(GOVERNANCE);
@@ -389,12 +421,14 @@ contract FactoryRegistryTest is Test {
         view
         returns (IMarketRegistry.VersionRegistration memory registration)
     {
-        bytes32 marketCloneHash = registry.expectedCloneRuntimeCodeHash(address(marketImplementation));
+        address selectedMarketImplementation =
+            versionId == 1 ? address(marketImplementation) : address(marketImplementationV2);
+        bytes32 marketCloneHash = registry.expectedCloneRuntimeCodeHash(selectedMarketImplementation);
         bytes32 sideCloneHash = registry.expectedCloneRuntimeCodeHash(address(sideTokenImplementation));
         registration = IMarketRegistry.VersionRegistration({
             versionId: versionId,
-            marketImplementation: address(marketImplementation),
-            marketImplementationCodeHash: address(marketImplementation).codehash,
+            marketImplementation: selectedMarketImplementation,
+            marketImplementationCodeHash: selectedMarketImplementation.codehash,
             marketCloneRuntimeCodeHash: marketCloneHash,
             sideTokenImplementation: address(sideTokenImplementation),
             sideTokenImplementationCodeHash: address(sideTokenImplementation).codehash,
