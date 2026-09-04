@@ -14,6 +14,10 @@ Phase B operation `0x3ab1120dbd78b416e10c0ff5118ccc2bbf8dd293950fd0ca24d964cf29c
 
 `phase-b-receipts.json` records the independently re-read schedule and execute receipts, Safe execution hashes, event counts, activated contract state, and the successful `REQUIRE_ACTIVATED=true` validator result. The protocol is activated for internal Testnet testing with `registrar = Factory Proxy` and `defaultMarketVersion = 1`.
 
+`market-v2.json` records the append-only Market Version 2 candidate with `b = 150,000`, its immutable implementation and clone hashes, and the calldata required to register V2 and select it for future contests. `market-v2-deployment-receipt.json` records the independently re-read successful deployment receipt and the on-chain `bWad()` verification for implementation `0x085B14926DC8cB15AD2614Ae68323A041A06e5b7`.
+
+`market-v2-proposal.json` locks the atomic Timelock operation `0x8d382e507d1c4f30998e66a75faf0228078cdc581be6826b7f270f7b0e4de82a`. `market-v2-schedule.safe.json` and `market-v2-execute.safe.json` are separate Safe Transaction Builder inputs. Until the schedule and execute transactions are confirmed and the resulting state is revalidated, Market V2 remains pending and Factory default version remains V1.
+
 Rules:
 
 - Never hand-edit a generated manifest.

@@ -1,0 +1,14 @@
+{
+  "chainId": 46630,
+  "transactionHash": "0x6916d10dd5f2daa8d699103203541a4085a6ac188e4f028868f3a53cd3e0bc60",
+  "status": 1,
+  "blockNumber": 112600054,
+  "blockHash": "0xf092cd99bb50241d7bd83c2a1b6a4c508c479e4859cfdb3fe3c6c28a6d96fa11",
+  "blockTimestamp": "2026-09-04T01:06:52Z",
+  "from": "0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91",
+  "contractAddress": "0x085B14926DC8cB15AD2614Ae68323A041A06e5b7",
+  "gasUsed": 4028140,
+  "effectiveGasPriceWei": 10000000,
+  "runtimeCodeHash": "0x4a644e3f70a03c7afe89132ea356964393b1c667c3f21e45009524ae281af604",
+  "bWadVerified": "150000000000000000000000"
+}
