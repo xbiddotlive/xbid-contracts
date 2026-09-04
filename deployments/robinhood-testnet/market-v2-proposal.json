@@ -24,11 +24,21 @@
   "executeFile": "market-v2-execute.safe.json",
   "scheduleSafeNonce": 2,
   "scheduleSafeTransactionHash": "0x88a3938e850603b8bc702c68d3c963c2ec02a2d2616074f0ffb203e049f922c7",
+  "executeSafeNonce": 3,
+  "executeSafeTransactionHash": "0xf92916b363f6a01f05aabbe73c9c1b06745f9d0c995a4efe79e2bf8ac47fd910",
   "ownerApprovals": [
     {
       "owner": "0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91",
+      "safeTransactionHash": "0x88a3938e850603b8bc702c68d3c963c2ec02a2d2616074f0ffb203e049f922c7",
       "transactionHash": "0x5d260288cce9a01bd3f79a095dd839cc22efe4affc198ee2d7802c20e738b75d",
       "blockNumber": 112607254,
+      "approvedHash": true
+    },
+    {
+      "owner": "0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91",
+      "safeTransactionHash": "0xf92916b363f6a01f05aabbe73c9c1b06745f9d0c995a4efe79e2bf8ac47fd910",
+      "transactionHash": "0x019ecfaa5a502e165807b6da6da5822efde063b8663fdfd91a2f4e79afd439a6",
+      "blockNumber": 112608339,
       "approvedHash": true
     }
   ],
