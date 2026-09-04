@@ -24,6 +24,9 @@
   "executeFile": "market-v2-execute.safe.json",
   "scheduleSafeNonce": 2,
   "scheduleSafeTransactionHash": "0x88a3938e850603b8bc702c68d3c963c2ec02a2d2616074f0ffb203e049f922c7",
+  "scheduleExecutionTransactionHash": "0x424420b0e0145fdb20ea8aaa43516cc7e7a666c3cd810aec18a2b282c6ace1ee",
+  "scheduleExecutionBlockNumber": 112617757,
+  "timelockReadyAt": 1788486762,
   "executeSafeNonce": 3,
   "executeSafeTransactionHash": "0xf92916b363f6a01f05aabbe73c9c1b06745f9d0c995a4efe79e2bf8ac47fd910",
   "ownerApprovals": [
@@ -42,5 +45,5 @@
       "approvedHash": true
     }
   ],
-  "status": "PENDING_SECOND_SAFE_APPROVAL"
+  "status": "PENDING_SAFE_EXECUTE"
 }
