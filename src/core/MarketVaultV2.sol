@@ -157,6 +157,10 @@ contract MarketVaultV2 is Initializable, ReentrancyGuard {
         _disableInitializers();
     }
 
+    function _expectedMarketVersion() internal pure virtual returns (uint32) {
+        return 2;
+    }
+
     function initialize(
         bytes32 contestId_,
         uint32 marketVersion_,
@@ -168,7 +172,7 @@ contract MarketVaultV2 is Initializable, ReentrancyGuard {
         address feeVault_
     ) external initializer {
         if (contestId_ == bytes32(0)) revert InvalidContestId();
-        if (marketVersion_ != 2) revert InvalidMarketVersion(marketVersion_);
+        if (marketVersion_ != _expectedMarketVersion()) revert InvalidMarketVersion(marketVersion_);
         if (
             creator_ == address(0) || settlementToken_ == address(0) || sideAToken_ == address(0)
                 || sideBToken_ == address(0) || riskController_ == address(0) || feeVault_ == address(0)

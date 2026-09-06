@@ -12,8 +12,9 @@ import {MarketVault} from "./MarketVault.sol";
 import {SideToken} from "./SideToken.sol";
 
 /// @notice Upgradeable entry point for creating future XBID contests.
-/// @dev Factory upgrades can only affect future creation. Historical version and
-///      contest records live in the non-upgradeable append-only MarketRegistry.
+/// @dev Factory upgrades cannot alter historical market bytecode or append-only
+///      Registry records. Users must still treat any ERC-20 allowance granted to
+///      this upgradeable address as trusting future governance-approved logic.
 contract XBIDFactory is Initializable, UUPSUpgradeable, ReentrancyGuard {
     using SafeTransferLib for address;
 

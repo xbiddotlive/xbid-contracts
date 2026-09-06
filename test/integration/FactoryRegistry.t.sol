@@ -7,6 +7,7 @@ import {FeeVault} from "../../src/core/FeeVault.sol";
 import {MarketRegistry} from "../../src/core/MarketRegistry.sol";
 import {MarketVault} from "../../src/core/MarketVault.sol";
 import {MarketVaultV2} from "../../src/core/MarketVaultV2.sol";
+import {MarketVaultV3} from "../../src/core/MarketVaultV3.sol";
 import {RiskController} from "../../src/core/RiskController.sol";
 import {SideToken} from "../../src/core/SideToken.sol";
 import {XBIDFactory} from "../../src/core/XBIDFactory.sol";
@@ -36,6 +37,7 @@ contract FactoryRegistryTest is Test {
     RiskController private riskController;
     MarketVault private marketImplementation;
     MarketVaultV2 private marketImplementationV2;
+    MarketVaultV3 private marketImplementationV3;
     SideToken private sideTokenImplementation;
     XBIDFactory private factoryImplementation;
     XBIDFactory private factory;
@@ -49,6 +51,7 @@ contract FactoryRegistryTest is Test {
         );
         marketImplementation = new MarketVault();
         marketImplementationV2 = new MarketVaultV2();
+        marketImplementationV3 = new MarketVaultV3();
         sideTokenImplementation = new SideToken();
         factoryImplementation = new XBIDFactory();
 
@@ -293,6 +296,34 @@ contract FactoryRegistryTest is Test {
         assertLe(marketV2.reserveUnits(), 1);
     }
 
+    function testFixedImplementationRegistersAsVersionThreeAndExecutesLargeBuy() external {
+        IMarketRegistry.VersionRegistration memory versionTwo = _versionRegistration(2);
+        vm.prank(GOVERNANCE);
+        factory.registerMarketVersion(versionTwo);
+        IMarketRegistry.VersionRegistration memory versionThree = _versionRegistration(3);
+        vm.prank(GOVERNANCE);
+        factory.registerMarketVersion(versionThree);
+        vm.prank(GOVERNANCE);
+        factory.setDefaultMarketVersion(3);
+
+        bytes32 versionThreeHash = keccak256("market-v3-stable-inverse");
+        vm.prank(CREATOR);
+        (bytes32 contestId, address marketAddress,,) =
+            factory.createContest(_createParams(versionThreeHash, keccak256("market-v3-stable-inverse-salt")));
+        MarketVaultV3 marketV3 = MarketVaultV3(marketAddress);
+        assertEq(marketV3.marketVersion(), 3);
+        assertEq(marketV3.bWad(), 150_000e18);
+        assertEq(registry.getContest(block.chainid, contestId).versionId, 3);
+
+        usdc.mint(CREATOR, 21_000_000e6);
+        vm.startPrank(CREATOR);
+        usdc.approve(marketAddress, type(uint256).max);
+        uint256 output = marketV3.buy(MarketVaultV2.Side.A, 21_000_000e6, 0, block.timestamp, address(0));
+        vm.stopPrank();
+        assertGt(output, 20_000_000e18);
+        assertGe(marketV3.reserveUnits(), marketV3.requiredReserveUnits());
+    }
+
     function testRegistryRejectsUnauthorizedAndInvalidVersionMetadata() external {
         IMarketRegistry.VersionRegistration memory versionTwo = _versionRegistration(2);
         vm.expectRevert(MarketRegistry.Unauthorized.selector);
@@ -421,8 +452,9 @@ contract FactoryRegistryTest is Test {
         view
         returns (IMarketRegistry.VersionRegistration memory registration)
     {
-        address selectedMarketImplementation =
-            versionId == 1 ? address(marketImplementation) : address(marketImplementationV2);
+        address selectedMarketImplementation = versionId == 1
+            ? address(marketImplementation)
+            : versionId == 2 ? address(marketImplementationV2) : address(marketImplementationV3);
         bytes32 marketCloneHash = registry.expectedCloneRuntimeCodeHash(selectedMarketImplementation);
         bytes32 sideCloneHash = registry.expectedCloneRuntimeCodeHash(address(sideTokenImplementation));
         registration = IMarketRegistry.VersionRegistration({

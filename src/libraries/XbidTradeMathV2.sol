@@ -18,8 +18,8 @@ library XbidTradeMathV2 {
     error CurveInputExceedsCapacity(uint256 curveInputWad, uint256 maximumWad);
     error BuySolutionExceedsBudget(uint256 costAfterWad, uint256 targetCostWad);
 
-    uint256 internal constant WAD = 1e18;
     int256 internal constant WAD_SIGNED = 1e18;
+    int256 internal constant LN_98_WAD = 4_584_967_478_670_571_920;
     uint256 internal constant SETTLEMENT_TO_WAD = 1e12;
     uint256 internal constant BPS_DENOMINATOR = 10_000;
     uint256 internal constant TRADING_FEE_BPS = 100;
@@ -194,29 +194,25 @@ library XbidTradeMathV2 {
         returns (uint256 nextQuantityWei)
     {
         int256 bWadSigned = XbidLmsrMathV2.bWad();
-        // All values are bounded by Market Version 2 and fit safely in int256.
-        // forge-lint: disable-next-line(unsafe-typecast)
-        int256 currentRatioWad = FixedPointMathLib.sDivWad(int256(currentQuantityWei), bWadSigned);
+        int256 currentLogPartitionWad = XbidLmsrMathV2.logPartitionWad(currentQuantityWei, otherQuantityWei);
         // forge-lint: disable-next-line(unsafe-typecast)
         int256 inputRatioWad = FixedPointMathLib.sDivWad(int256(curveInputWad), bWadSigned);
-        int256 growthWadSigned = FixedPointMathLib.expWad(inputRatioWad) - WAD_SIGNED;
-        int256 partitionWadSigned =
-            FixedPointMathLib.expWad(XbidLmsrMathV2.logPartitionWad(currentQuantityWei, otherQuantityWei));
+        int256 targetLogPartitionWad = currentLogPartitionWad + inputRatioWad;
+        // forge-lint: disable-next-line(unsafe-typecast)
+        int256 otherRatioWad = FixedPointMathLib.sDivWad(int256(otherQuantityWei), bWadSigned);
 
-        // expWad is non-negative in the locked domain.
-        // forge-lint: disable-next-line(unsafe-typecast)
-        uint256 currentWeightWad = uint256(FixedPointMathLib.expWad(currentRatioWad));
-        // forge-lint: disable-next-line(unsafe-typecast)
-        uint256 partitionWad = uint256(partitionWadSigned);
-        // forge-lint: disable-next-line(unsafe-typecast)
-        uint256 growthWad = uint256(growthWadSigned);
-        uint256 nextWeightWad = currentWeightWad + FixedPointMathLib.fullMulDiv(partitionWad, growthWad, WAD);
+        // Solve entirely in a log-partition-relative domain:
+        //   exp(nextQ / b - targetLogZ)
+        //     = 1 - exp(otherQ / b - targetLogZ) - exp(ln(98) - targetLogZ)
+        // Every exp input is non-positive, so this remains valid across the
+        // full V2 quantity domain (q / b <= 200) without constructing an
+        // overflowing absolute partition or weight.
+        int256 normalizedCurrentWeightWad = WAD_SIGNED - FixedPointMathLib.expWad(otherRatioWad - targetLogPartitionWad)
+            - FixedPointMathLib.expWad(LN_98_WAD - targetLogPartitionWad);
+        int256 nextRatioWad = targetLogPartitionWad + FixedPointMathLib.lnWad(normalizedCurrentWeightWad);
+        int256 nextQuantitySigned = FixedPointMathLib.sMulWad(bWadSigned, nextRatioWad);
 
-        // Capacity validation proves nextWeightWad fits in int256.
-        // forge-lint: disable-next-line(unsafe-typecast)
-        int256 nextWeightSigned = int256(nextWeightWad);
-        int256 nextQuantitySigned = FixedPointMathLib.sMulWad(bWadSigned, FixedPointMathLib.lnWad(nextWeightSigned));
-        // nextWeight >= currentWeight >= 1e18, so the result is non-negative.
+        // Capacity validation bounds the result to [currentQuantity, MAX_Q].
         // forge-lint: disable-next-line(unsafe-typecast)
         nextQuantityWei = uint256(nextQuantitySigned);
     }
