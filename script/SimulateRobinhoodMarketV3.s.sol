@@ -47,10 +47,11 @@ contract SimulateRobinhoodMarketV3 is Script {
         bytes32 salt = keccak256(abi.encode("XBID-MARKET-V3", block.chainid, implementation, expectedHash));
         TimelockController timelock = TimelockController(payable(timelockAddress));
         bytes32 operationId = timelock.hashOperationBatch(targets, values, payloads, bytes32(0), salt);
+        uint256 delay = timelock.getMinDelay();
         vm.prank(RobinhoodDeploymentConfig.GOVERNANCE_SAFE);
-        timelock.scheduleBatch(targets, values, payloads, bytes32(0), salt, timelock.getMinDelay());
+        timelock.scheduleBatch(targets, values, payloads, bytes32(0), salt, delay);
         require(!timelock.isOperationReady(operationId), "delay not enforced");
-        vm.warp(block.timestamp + timelock.getMinDelay());
+        vm.warp(block.timestamp + delay);
         vm.prank(RobinhoodDeploymentConfig.GOVERNANCE_SAFE);
         timelock.executeBatch(targets, values, payloads, bytes32(0), salt);
         require(timelock.isOperationDone(operationId), "operation incomplete");
