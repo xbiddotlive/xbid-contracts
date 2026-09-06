@@ -119,7 +119,7 @@ contract MarketVaultV2InvariantTest is InvariantTest {
     MarketVaultV2Handler private handler;
 
     function setUp() public {
-        MarketVaultV2 marketImplementation = new MarketVaultV2();
+        MarketVaultV2 marketImplementation = _implementation();
         SideToken tokenImplementation = new SideToken();
         usdc = new MockSettlementToken();
         MockRiskController riskController = new MockRiskController();
@@ -132,7 +132,7 @@ contract MarketVaultV2InvariantTest is InvariantTest {
         tokenB.initialize(CONTEST_ID, 1, address(market), "XBID B", "XB");
         market.initialize(
             CONTEST_ID,
-            2,
+            _marketVersion(),
             address(this),
             address(usdc),
             address(tokenA),
@@ -144,6 +144,14 @@ contract MarketVaultV2InvariantTest is InvariantTest {
         handler = new MarketVaultV2Handler(market, tokenA, tokenB, usdc);
         usdc.mint(address(handler), INITIAL_USDC_UNITS);
         _addTargetContract(address(handler));
+    }
+
+    function _implementation() internal virtual returns (MarketVaultV2) {
+        return new MarketVaultV2();
+    }
+
+    function _marketVersion() internal pure virtual returns (uint32) {
+        return 2;
     }
 
     function invariantReserveCoversCurveCostAndActualBalance() external view {
