@@ -1,0 +1,41 @@
+{
+  "status": "PLANNED_NOT_DEPLOYED",
+  "chainId": 84532,
+  "network": "Base Sepolia",
+  "rpcUrl": "https://sepolia.base.org",
+  "explorerUrl": "https://sepolia.basescan.org",
+  "settlementToken": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  "settlementDecimals": 6,
+  "marketVersion": 3,
+  "testWallet": "0x22B12Cbad5a3EA288fEB71Df4Cf52E4F08529cbc",
+  "governance": {
+    "authorization": "User explicitly approved reusing the existing signers and 2-of-3 threshold on Base Sepolia.",
+    "safeVersion": "1.4.1",
+    "threshold": 2,
+    "owners": ["0x9352e25bCE67fE650BC8Ab7fBda5E92c36273E91", "0x9A7A0fa83cA804a56e52853EB4DAFbcc52f998d7", "0xADaA6e8cf259A12BF47616D90023784dC39dA345"],
+    "sourceSafe": "0xf72028a7f304e0585bdF7cd8BB0E0cB91fF2fBe1",
+    "baseSafe": null,
+    "timelock": null,
+    "testnetDelaySeconds": 300
+  },
+  "emergency": {
+    "safeVersion": "1.4.1",
+    "threshold": 2,
+    "owners": ["0xC103944a67Da5C1b329283C60b0D6CE12A80e3BB", "0xC1C5540e11500ead7955B8768d99903638cb808c", "0x5AecEf58fC44cB781a57359f93c9Da5125305647"],
+    "sourceSafe": "0x7f4601752bd49155c47A943893Ddb13C9f1Aa446",
+    "baseSafe": null
+  },
+  "teamTreasury": "0x6AE1c7B6c583E50777002b70FE289321f23B8fF3",
+  "protocolTreasury": "0x786c860A8659b63Ebdf885a93a78282b2C80214b",
+  "preflight": {
+    "checkedOn": "2026-09-08",
+    "baseChainIdConfirmed": true,
+    "circleUsdcDecimalsConfirmed": true,
+    "testWalletBaseEth": "0",
+    "sourceGovernanceAndEmergencyOwnersConfirmed": true,
+    "sourceTreasuriesAreEoas": true,
+    "sourceSafeAddressesHaveNoCodeOnBase": true
+  },
+  "preservation": "Do not replace Robinhood deployment manifests, databases, domains or campaign records. No old holdings become Base assets. Do not weaken Safe or timelock requirements.",
+  "pending": ["Testnet gas funding", "Verify official Safe infrastructure on Base Sepolia", "Deploy and validate governance and emergency Safes", "Prepare and test Base-specific V3 deployment and governance activation", "New isolated database/indexer/API/frontend", "Live Base Sepolia end-to-end transactions", "Public endpoint cutover after verification"]
+}
