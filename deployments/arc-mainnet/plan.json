@@ -1,5 +1,7 @@
 {
-  "status": "PLANNED_NOT_DEPLOYED",
+  "status": "HISTORICAL_PLAN_SUPERSEDED_BY_VERIFIED_DEPLOYMENT",
+  "latestDeploymentRecord": "deployed-2026-09-28.json",
+  "historyNote": "This file preserves pre-deployment decisions and snapshots. Actual confirmed addresses, receipts and activation state are recorded in latestDeploymentRecord; nested NOT_DEPLOYED fields below are historical, not current chain status.",
   "updatedOn": "2026-09-28",
   "chainId": 5042,
   "network": "Arc",

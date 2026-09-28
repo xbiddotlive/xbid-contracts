@@ -1,0 +1,180 @@
+{
+  "status": "CONTRACTS_DEPLOYED_AND_ACTIVATED_APPLICATION_PENDING",
+  "chainId": 5042,
+  "network": "Arc mainnet",
+  "domain": "xbid.live",
+  "sourceCommit": "2ed267d4fe6312b6533d86735dd50cb91128c04a",
+  "deployer": "0xa0b8f23f879457872109b5b20c9545b5281b28f6",
+  "verifiedAtBlock": 23214462,
+  "addresses": {
+    "TimelockController": "0x25b923b1D50732E25cE74Baa8677Bb7fc0d9ab8a",
+    "MarketRegistry": "0xf63b7567bB942CDC462F496377dc648B1C8B5cAe",
+    "RiskControllerV2": "0x5daD4aB0078FEe813E262dfB2873Beed9373c0B4",
+    "FeeVault": "0x7c6e7d09168D0BF8c865ecb33408F180B95BD5Ac",
+    "XBIDFactory": "0xC64112532eE32a8AA96f4191Fc56107743771115",
+    "ERC1967Proxy": "0x9C83dCE5bdbDD84c5B624101A6F716bccbB2D9C1",
+    "SideToken": "0xD63EE9FB3Db83f4bE8224b5d9C64E64fD13Ee33E",
+    "MarketVault": "0xC5860929761Fd52C0833dE2651E8156286dE2dDF",
+    "MarketVaultV2": "0x0f79CdE38990B497C130639C8bA604015DDEDaAd",
+    "MarketVaultV3": "0x76D261E3a4ABAC83E8C78395D49C218543e5dD01"
+  },
+  "settlementToken": "0x3600000000000000000000000000000000000000",
+  "registeredVersions": [
+    1,
+    2,
+    3
+  ],
+  "defaultMarketVersion": 3,
+  "governance": {
+    "safe": "0x7A5B3A1741fe4731C3a85134d308c528451B70e0",
+    "threshold": 2,
+    "ownerCount": 3,
+    "delaySeconds": 600
+  },
+  "emergency": {
+    "safe": "0xa2ce6CE71ed06769e945741f2dC98583EA9a9eEc",
+    "threshold": 2,
+    "ownerCount": 3,
+    "pauseDelaySeconds": 0,
+    "tradingRecoveryDelaySeconds": 300
+  },
+  "createFeeRecipient": "0x5dA5b1e2620615B9Ad6fDf697609bFe0E5cAF4F6",
+  "platformTradingFeeRecipient": "0x179bCD103B62c89d41FF2e47DA52Be544CdfB767",
+  "feeSplitBps": {
+    "protocol": 5000,
+    "creator": 4000,
+    "referrer": 1000
+  },
+  "indexerStartBlock": 23208125,
+  "activationBlock": 23214351,
+  "cumulativeGasUsdc": "0.467219255020537485",
+  "contractReceipts": [
+    {
+      "order": 1,
+      "name": "TimelockController",
+      "hash": "0xcc8a5367ae7059ff930d43750f79a21e090c6107ca98bd60d5740bcf1b68ea35",
+      "address": "0x25b923b1d50732e25ce74baa8677bb7fc0d9ab8a",
+      "blockNumber": 23207898,
+      "gasUsed": "1889213",
+      "effectiveGasPrice": "20375000002",
+      "runtimeHash": "0x192479fd8812bfa90f4d980b6b408d93877614bff4c326ba5500b05d36f7221f"
+    },
+    {
+      "order": 2,
+      "name": "MarketRegistry",
+      "hash": "0xc966475cbfb7f11d33e2070def3846715433e22d54f575be9b2403ea055fcd10",
+      "address": "0xf63b7567bb942cdc462f496377dc648b1c8b5cae",
+      "blockNumber": 23208125,
+      "gasUsed": "2206006",
+      "effectiveGasPrice": "20000000001",
+      "runtimeHash": "0x80d1b82a55b3c3886b6f49a367514fa742dbc5e9fa330e70fcf6e1a347102fac"
+    },
+    {
+      "order": 3,
+      "name": "RiskControllerV2",
+      "hash": "0x85df69c9bfa4956e2717da8b1f06b3b8167d538515874d25843b67508ce5d08b",
+      "address": "0x5dad4ab0078fee813e262dfb2873beed9373c0b4",
+      "blockNumber": 23208507,
+      "gasUsed": "1158170",
+      "effectiveGasPrice": "20000000002",
+      "runtimeHash": "0x2668458063aa393641f2789831f29f3833271fa9b0732bbd8e92272696a60130"
+    },
+    {
+      "order": 4,
+      "name": "FeeVault",
+      "hash": "0x4b47ba51c6aad10010c7e937976b5e1bb4a4309cb6ecc856182bff2cbbdf1637",
+      "address": "0x7c6e7d09168d0bf8c865ecb33408f180b95bd5ac",
+      "blockNumber": 23208991,
+      "gasUsed": "1646770",
+      "effectiveGasPrice": "20000000006",
+      "runtimeHash": "0xc883b4a22a8316a478a1aa492d5b2f988985e70bac8984c9b217d2ad2cd9a540"
+    },
+    {
+      "order": 5,
+      "name": "XBIDFactory",
+      "hash": "0xb4fa6c9b66696b4fa094f0d8bae2cb3eed967676440003bc86d37399c79080a0",
+      "address": "0xc64112532ee32a8aa96f4191fc56107743771115",
+      "blockNumber": 23209165,
+      "gasUsed": "2829581",
+      "effectiveGasPrice": "20000000006",
+      "runtimeHash": "0xe32a226ddd1f34c70408e266a6356180e416a184b78657b7f547370d3d7bf3e1"
+    },
+    {
+      "order": 6,
+      "name": "ERC1967Proxy",
+      "hash": "0xf24311cbbc5ca1e2652c6f07b02e55303c2cf09f86377d505c4ef2923c3a64cf",
+      "address": "0x9c83dce5bdbdd84c5b624101a6f716bccbb2d9c1",
+      "blockNumber": 23209482,
+      "gasUsed": "261837",
+      "effectiveGasPrice": "20000000010",
+      "runtimeHash": "0x4c0e1a9cf43432c5223b2232a57b05ded583ec22890fecfe6e59720af9128d31"
+    },
+    {
+      "order": 7,
+      "name": "SideToken",
+      "hash": "0xdf0b0f939c21bdb9bd9f05521ccb55fc9893ec65a22504780215a757bbefa170",
+      "address": "0xd63ee9fb3db83f4be8224b5d9c64e64fd13ee33e",
+      "blockNumber": 23209748,
+      "gasUsed": "943833",
+      "effectiveGasPrice": "20000000008",
+      "runtimeHash": "0xb2d9a8e74440f672bccd50dde48706173d3daad300dc31c8a6174ffb2ff2f15a"
+    },
+    {
+      "order": 8,
+      "name": "MarketVault",
+      "hash": "0x7f716dc179870516a7b346cd277d7966d1d25e2b14c88ef17b90e5c7045f4867",
+      "address": "0xc5860929761fd52c0833de2651e8156286de2ddf",
+      "blockNumber": 23209995,
+      "gasUsed": "3760563",
+      "effectiveGasPrice": "20000000006",
+      "runtimeHash": "0x4f2e29b7be204dc3187ac149038d08d1c9f963e011a06dfd17df6bb18a794f91"
+    },
+    {
+      "order": 9,
+      "name": "MarketVaultV2",
+      "hash": "0x4bcef37ce4413ab18ec9b654919928c641868744dcec4ea2b419b271404af428",
+      "address": "0x0f79cde38990b497c130639c8ba604015ddedaad",
+      "blockNumber": 23210207,
+      "gasUsed": "3763385",
+      "effectiveGasPrice": "20000000010",
+      "runtimeHash": "0x109e70bc7e1b4875a43dff3182975fb6474c14b7bffcbd52961821a5ee1d5d67"
+    },
+    {
+      "order": 10,
+      "name": "MarketVaultV3",
+      "hash": "0x6f70cfd16da8efb8f03ec45f429c38b302c7cd3a19cdb8ad553b82ce14b17aeb",
+      "address": "0x76d261e3a4abac83e8c78395d49c218543e5dd01",
+      "blockNumber": 23210815,
+      "gasUsed": "3763397",
+      "effectiveGasPrice": "20000000010",
+      "runtimeHash": "0x8b62c6d3624e2d7f3b99808f112ca864d92843daa75537d34aee4d64aef38556"
+    }
+  ],
+  "governanceReceipts": [
+    {
+      "hash": "0x2b3a0aa3c214a0a8a5ff5e0ec1e2317d4128c4a04323e94f00e2d87ed6a3d7c0",
+      "stage": "schedule",
+      "safeTxHash": "0x4f22e5f0400af514f5a5ed510e73e9c283c84591afe2da8c5cb906dbce72426d",
+      "success": true,
+      "blockNumber": 23212411,
+      "gasUsed": "172805",
+      "effectiveGasPrice": "20000000003"
+    },
+    {
+      "hash": "0xf2dea4c4bac469889e1987318848e09f2a0b4884e12ade9f649f97d834fd9091",
+      "stage": "execute",
+      "safeTxHash": "0x553d0d5bd7adda7a642bbc3fe2652778754319e798e5393a8c3ab3c7071734bb",
+      "success": true,
+      "blockNumber": 23214351,
+      "gasUsed": "929980",
+      "effectiveGasPrice": "20000000002"
+    }
+  ],
+  "verificationScope": [
+    "All 10 successful deployment receipts and runtime hashes verified against reviewed manifest.",
+    "All five CallExecuted events matched reviewed targets and calldata.",
+    "Registry versions and default V3, fee recipients/split and delay constants verified at the stated block.",
+    "No mainnet contest creation or trading wallet end-to-end acceptance yet.",
+    "Website deployment and TLS acceptance remain separate."
+  ]
+}
