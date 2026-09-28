@@ -1,0 +1,122 @@
+{
+  "status": "PLANNED_NOT_DEPLOYED",
+  "updatedOn": "2026-09-28",
+  "chainId": 5042,
+  "network": "Arc",
+  "domain": "xbid.live",
+  "signingMethod": "BROWSER_WALLET_USER_CONFIRMED_NO_PRIVATE_KEY",
+  "rpcUrl": "https://rpc.mainnet.arc.io",
+  "explorerUrl": "https://explorer.arc.io",
+  "settlementToken": "0x3600000000000000000000000000000000000000",
+  "settlementDecimals": 6,
+  "nativeGasDecimals": 18,
+  "deployer": "0xa0b8f23f879457872109b5b20c9545b5281b28f6",
+  "teamTreasury": "0x5dA5b1e2620615B9Ad6fDf697609bFe0E5cAF4F6",
+  "protocolTreasury": "0x179bCD103B62c89d41FF2e47DA52Be544CdfB767",
+  "feeSplit": {
+    "status": "USER_CONFIRMED",
+    "protocolBps": 5000,
+    "creatorBps": 4000,
+    "referrerBps": 1000,
+    "denominator": 10000,
+    "absentReferrerPolicy": "Unallocated referral share goes to protocol; rounding remainder also goes to protocol."
+  },
+  "governance": {
+    "status": "READ_ONLY_SAFE_CONFIGURATION_AND_BYTECODE_VERIFIED_SIGNATURES_PENDING",
+    "safe": "0x7A5B3A1741fe4731C3a85134d308c528451B70e0",
+    "owners": [
+      "0xA0b8f23f879457872109B5B20C9545B5281b28F6",
+      "0xbcD4C253231Ce239A9b073987B54C48a561009A2",
+      "0xa860aCdE31615461C0936511E1DcF81801CE7751"
+    ],
+    "threshold": 2,
+    "timelock": null,
+    "plannedDelaySeconds": 600,
+    "delayStatus": "LOCAL_RELEASE_REHEARSAL_PASSED_NOT_DEPLOYED",
+    "delayDecision": "User explicitly requested 10 minutes for ordinary governance, superseding the earlier 48-hour Arc plan. This reduces the observation and cancellation window for governance changes. Arc-specific implementation and deployment checks must enforce 600 seconds; do not change historical network configurations."
+  },
+  "emergency": {
+    "status": "RISK_CONTROLLER_V2_IMPLEMENTED_LOCAL_TESTS_PASSED_NOT_DEPLOYED",
+    "safe": "0xa2ce6CE71ed06769e945741f2dC98583EA9a9eEc",
+    "owners": [
+      "0x8991163754C3DDaD0BFBa5677BFb28671043Fb60",
+      "0x4A7Af5240441d5E0BA9dEc1A2ed3Af32b7Bb4DE0",
+      "0x0715E9f0BA40F9c38a6C0868409E5AC5ef88B006"
+    ],
+    "threshold": 2,
+    "requestedDelaySeconds": 300,
+    "delayApplied": false,
+    "delayClarification": "The 300-second delay applies to restoring trading, not imposing a pause. RiskControllerV2 implements this narrowly scoped path separately from the 600-second ordinary governance delay. Local tests passed; delayApplied remains false until deployment and onchain verification.",
+    "tradingRecoveryPolicy": {
+      "status": "IMPLEMENTED_LOCALLY_NOT_DEPLOYED",
+      "pauseDelaySeconds": 0,
+      "recoveryDelaySeconds": 300,
+      "delayStartsAt": "Recovery proposal queued on-chain by the emergency 2-of-3 Safe, not at the initial pause or first off-chain signature.",
+      "execution": "Explicit execution transaction after the delay; no automatic unpause.",
+      "scope": "Trading risk-mode recovery only; exclude fee claims, fee split changes, treasury changes, fund transfers and upgrades.",
+      "requiredSafeguards": [
+        "Only the authorized emergency Safe can queue recovery; governance retains its existing recovery authority.",
+        "Bind each queued action to its market or global scope and intended mode.",
+        "Allow cancellation and invalidate obsolete recovery proposals after a subsequent restriction so an old queue cannot override a new incident response.",
+        "Enforce the delay on-chain and test early execution, replay, cancellation, repeated pauses, role rotation and interaction between global and per-market modes."
+      ]
+    }
+  },
+  "multisigInstruction": "Latest user clarification supersedes the initial label: first address is governance, second is emergency, both 2-of-3. Both owner sets and thresholds match Arc RPC reads. Emergency trading recovery must wait 5 minutes; ordinary governance must wait 10 minutes per the latest user decision. Implement and verify both delays, the scoped recovery path and Safe 1.5.0 before deployment; do not reuse old signers or the old 1.4.1-locked preflight.",
+  "multisigReadOnlyChecks": {
+    "chainId": 5042,
+    "blockNumber": 23206378,
+    "bothOwnerSetsMatchUserInput": true,
+    "bothThresholds": 2,
+    "reportedVersion": "1.5.0",
+    "reportedSingleton": "0xEdd160fEBBD92E350D4D398fb636302fccd67C7e",
+    "bothProxyCodeBytes": 123,
+    "bothModuleListsEmpty": true,
+    "reportedFallbackHandler": "0x3eFcBB83a4A7afCB4f68d501E2c2203a38Be77f4",
+    "officialBytecodeVerified": true,
+    "singletonCodeHash": "0x180193227186ccb85316c94db1f0d156ed932b14712cfaac78901899178572dc",
+    "fallbackHandlerCodeHash": "0x3c6a85bcf7b563daa624b884b4e9a1b9fa5371edde7be945d998071a48f28bbc",
+    "proxyRuntimeCodeHash": "0x4e381985ca68b3e5d27b4425fa581c19cf33146d3f887a3cfca96f55528ea46f",
+    "bothGuardSlotsZero": true,
+    "bothModuleGuardSlotsZero": true,
+    "ownerSigningControlVerified": false,
+    "note": "Singleton and fallback hashes match official safe-deployments v1.5.0 assets. Both proxy runtimes exactly match eth_call creation code from the hash-verified official v1.5.0 SafeProxyFactory. This does not prove owners can sign; refresh checks before deployment."
+  },
+  "deploymentBudget": {
+    "approvalThresholdUsdc": "1.5",
+    "snapshotBlock": 23206378,
+    "tenContractsEstimatedUsdc": "0.44821594",
+    "tenContractsBufferedCeilingUsdc": "1.12054",
+    "estimateCaveat": "Draft constructor estimates use temporary state overrides. Buffered ceiling uses 25% gas headroom and 2x snapshot gas price. Governance Safe schedule/execute costs are not included or approved as a final total. Nonce and fees must be refreshed before signing.",
+    "overThresholdPolicy": "Request approval with estimate and reason before exceeding the threshold; continue no-cost preparation while awaiting approval."
+  },
+  "verification": {
+    "contractsLocal": "172 passed, 0 failed, 1 optional Arc fork test skipped",
+    "frontend": "Full check passed; 36 tests passed",
+    "backend": "Full check passed; 51 passed, 3 database integration tests skipped",
+    "indexer": "Full check passed; 12 tests passed",
+    "arcRpcCompatibilityBlock": 23205301,
+    "arcRpcCompatibility": "Read-only state-override probes passed real Arc USDC approve/transferFrom/return and production V3 buy/flip/sellAll/fee claims/accounting. Registry stub and temporary contract instances; no broadcast or persistent balances.",
+    "localForkLimitation": "Foundry local EVM cannot execute Arc system contract 0x1800000000000000000000000000000000000001 (OpcodeNotFound). The opt-in fork test does not pass and is not replaced with a mock-success claim.",
+    "independentAudit": false
+  },
+  "serverPreparation": {
+    "host": "69.55.59.184",
+    "dockerInstalled": true,
+    "dockerVersion": "29.1.3",
+    "composeVersion": "2.40.3",
+    "applicationDeployed": false,
+    "dnsChanged": false,
+    "note": "Only the new authorized DO server was prepared. No other projects or old Kubernetes resources were changed."
+  },
+  "preflight": {
+    "checkedOn": "2026-09-28",
+    "rpcChainIdConfirmed": true,
+    "treasuryAddressFormatsValid": true,
+    "teamTreasuryCode": "0x",
+    "protocolTreasuryCode": "0x",
+    "treasuryControlVerified": false,
+    "note": "Empty eth_getCode does not prove user control or ability to sign. No transactions have been sent."
+  },
+  "preservation": "Do not modify Robinhood or Base deployment records, copy testnet metrics into mainnet, or assume this plan is an executable deployment manifest."
+}

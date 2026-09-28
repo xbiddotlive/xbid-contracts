@@ -1,0 +1,8 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>XBID · Arc 合约逐笔部署</title>
+<style>:root{color-scheme:dark}body{background:#11151b;color:#ecf0f5;font:16px/1.7 system-ui;margin:0}main{max-width:900px;margin:32px auto;padding:0 24px}section{background:#1a2029;border:1px solid #303948;padding:22px;margin:18px 0;border-radius:10px}h1{font-size:26px}h2{font-size:19px}.muted{color:#a1afbe}.warning{color:#f4d080}button,select{font:inherit;padding:10px;background:#2b3b51;color:#fff;border:1px solid #516680;border-radius:6px;margin:8px 8px 8px 0;cursor:pointer}button:disabled{opacity:.4;cursor:not-allowed}pre{white-space:pre-wrap;word-break:break-all;font:14px/1.7 monospace}a{color:#b9d4ff}</style><script src="/deploy.js" defer></script></head>
+<body><main><h1>XBID · Arc 主网合约部署</h1><p class="muted">chain 5042 · 本机签名入口 · 只在你的浏览器钱包里签名</p>
+<section class="warning">此页与只读审阅页不同：点击「发送当前这一笔」会请求钱包签署真实主网部署交易并支付 gas。每次只发送一笔，你需在钱包中亲自确认。不会自动签下一笔，也不会自动激活交易。</section>
+<section><h2>1. 核对钱包</h2><select id="wallet"></select><button id="connect" disabled>连接部署钱包</button><pre id="account">等待连接</pre></section>
+<section><h2>2. 当前部署检查</h2><button id="check" disabled>检查下一笔与最新费用</button><pre id="quote">先连接正确的钱包与 Arc 主网。</pre><p class="muted">费用限额 1.5 USDC；检查包含剩余合约部署的费用缓冲，但不包含之后的治理 Safe 激活费用。治理费另行核算，累计超预算必须先批准。</p><label><input id="consent" type="checkbox">我已核对这笔合约及参数，愿意在钱包里确认部署。</label><br><button id="send" disabled>发送当前这一笔（钱包确认）</button></section>
+<section><h2>3. 链上回执</h2><pre id="receipt">尚未发送</pre><button id="refresh">刷新状态 / 检查已发送交易</button><p id="source" class="muted"></p><p><a href="http://127.0.0.1:3199/" target="_blank" rel="noopener">查看治理、收款与分账参数</a></p></section>
+</main></body></html>

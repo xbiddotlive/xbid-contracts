@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>XBID · Arc 主网部署审阅</title>
+  <style>
+    :root{color-scheme:dark}body{margin:0;background:#101217;color:#eef1f5;font:15px/1.65 system-ui,sans-serif}main{max-width:1000px;margin:38px auto;padding:0 24px}h1{font-size:26px;margin-bottom:4px}h2{font-size:18px;margin-top:26px}.muted{color:#9da7b5}.panel{background:#191d25;border:1px solid #29303d;border-radius:10px;padding:20px;margin:16px 0}.notice{color:#f1d58b}button,select,a.download{font:inherit;background:#283449;color:#eef1f5;border:1px solid #41516d;border-radius:6px;padding:9px 14px;cursor:pointer;margin:8px 8px 8px 0}button:disabled{opacity:.4;cursor:not-allowed}a{color:#b8cfff}code{word-break:break-all;font-size:13px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;border-bottom:1px solid #2b313a;padding:9px 6px}#wallet-state{white-space:pre-wrap}dl{display:grid;grid-template-columns:150px 1fr;gap:9px;margin:0}dd{margin:0;overflow-wrap:anywhere}dt{color:#9da7b5}@media(max-width:650px){dl{display:block}dd{margin-bottom:12px}table{font-size:11px}}
+  </style>
+  <script src="/review.js" defer></script>
+</head>
+<body><main>
+  <h1>XBID · Arc 主网部署审阅</h1>
+  <p class="muted">xbid.live · chain 5042 · 本机页面，不连接第三方签名服务</p>
+  <div class="panel notice">未部署 · 当前仅连接钱包、核对账户和网络。页面没有签名、授权扣款或发送交易功能。清单仍为草案，不能直接导入钱包执行。</div>
+  <section class="panel"><h2>1. 钱包连接</h2>
+    <label for="wallet">选择已安装的钱包：</label><select id="wallet"><option value="">正在查找…</option></select>
+    <button id="connect" disabled>连接并核对部署账户</button>
+    <button id="switch" disabled>切换至 Arc 主网</button>
+    <p id="wallet-state" aria-live="polite">尚未连接。无需提供密码、助记词或私钥。</p>
+  </section>
+  <section class="panel"><h2>2. 已确认参数</h2><dl id="parameters"></dl></section>
+  <section class="panel"><h2>3. 费用快照</h2><p id="cost"></p><p class="muted">尚未包含治理 Safe 排队与执行等费用。正式签名前重新核算完整费用；累计超过 1.5 USDC 先获批准。</p></section>
+  <section class="panel"><h2>4. 合约部署顺序（10 笔）</h2><p class="muted">预测地址依赖部署账户 nonce；不是已上线地址。</p><table><thead><tr><th>顺序</th><th>合约</th><th>预测地址</th><th>估算 gas</th></tr></thead><tbody id="transactions"></tbody></table></section>
+  <section class="panel"><h2>签名前还需完成</h2><p>从经过检查并推送的源码版本重建正式清单；刷新 nonce、余额和完整费用；完成钱包端预检。之后才会提供逐笔签名入口。部署回执和代码核验完成后，由治理 Safe 2/3 排队激活，等待 10 分钟，再 2/3 执行。</p><a class="download" href="/review.json" download="xbid-arc-unsigned-draft.json">下载未签名审阅草案</a></section>
+</main></body></html>
