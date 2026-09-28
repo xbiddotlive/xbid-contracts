@@ -15,6 +15,11 @@ const [manifestPath, receiptsPath, journalPath] = process.argv.slice(2);
 assert.ok([manifestPath, receiptsPath, journalPath].every(p => p && isAbsolute(p)));
 assert.equal(new Set([manifestPath, receiptsPath, journalPath]).size, 3);
 const draft = JSON.parse(readFileSync(manifestPath));
+const isV4Upgrade = draft.purpose === 'ARC_MARKET_V4_15000';
+const targetVersion = isV4Upgrade ? 4 : 3;
+const port = Number(process.argv[5] ?? (isV4Upgrade ? 3195 : 3197));
+assert.ok([3195, 3197].includes(port));
+if (isV4Upgrade) assert.equal(draft.crownActivationReserveUnits, '15000000000');
 const deployments = JSON.parse(readFileSync(receiptsPath));
 const a = draft.addresses;
 const safe = '0x7A5B3A1741fe4731C3a85134d308c528451B70e0';
@@ -22,7 +27,7 @@ const owners = ['0xA0b8f23f879457872109B5B20C9545B5281b28F6', '0xbcD4C253231Ce23
 const manifestHash = keccak256(toHex(JSON.stringify(draft)));
 assert.equal(draft.chainId, 5042); assert.equal(draft.sourceDirty, false);
 assert.equal(deployments.manifestHash, manifestHash);
-assert.equal(deployments.chainId, 5042); assert.equal(deployments.receipts.length, 10); assert.equal(deployments.pendingHash, null);
+assert.equal(deployments.chainId, 5042); assert.equal(deployments.receipts.length, isV4Upgrade ? 1 : 10); assert.equal(deployments.pendingHash, null);
 assert.equal(draft.deployer.toLowerCase(), owners[0].toLowerCase());
 const abi = n => JSON.parse(readFileSync(new URL(`../out/${n}.sol/${n}.json`, import.meta.url))).abi;
 const safeAbi = parseAbi([
@@ -36,19 +41,19 @@ const safeAbi = parseAbi([
 const activation = draft.governanceActivation;
 const encode = (name, functionName, args) => encodeFunctionData({ abi: abi(name), functionName, args });
 // Rebuild the fixed scope; do not trust opaque manifest payloads as arbitrary calls.
-assert.equal(activation.registrations.length, 3);
+assert.equal(activation.registrations.length, isV4Upgrade ? 1 : 3);
 for (const [i, r] of activation.registrations.entries()) {
-  assert.equal(r.versionId, i + 1);
-  assert.equal(r.marketImplementation, a[['MarketVault', 'MarketVaultV2', 'MarketVaultV3'][i]]);
+  assert.equal(r.versionId, isV4Upgrade ? 4 : i + 1);
+  assert.equal(r.marketImplementation, a[isV4Upgrade ? 'MarketVaultV4' : ['MarketVault', 'MarketVaultV2', 'MarketVaultV3'][i]]);
   assert.equal(r.sideTokenImplementation, a.SideToken);
   assert.equal(r.settlementToken.toLowerCase(), '0x3600000000000000000000000000000000000000');
   assert.equal(r.feeVault, a.FeeVault); assert.equal(r.riskController, a.RiskControllerV2);
-  assert.equal(r.feeVaultVersion, 1); assert.equal(r.riskControllerVersion, 2); assert.equal(r.abiVersion, i === 0 ? 1 : 2);
+  assert.equal(r.feeVaultVersion, 1); assert.equal(r.riskControllerVersion, 2); assert.equal(r.abiVersion, !isV4Upgrade && i === 0 ? 1 : 2);
 }
-const targets = [a.MarketRegistry, a.ERC1967Proxy, a.ERC1967Proxy, a.ERC1967Proxy, a.ERC1967Proxy];
-const payloads = [encode('MarketRegistry', 'setRegistrar', [a.ERC1967Proxy]),
+const targets = isV4Upgrade ? [a.ERC1967Proxy, a.ERC1967Proxy] : [a.MarketRegistry, a.ERC1967Proxy, a.ERC1967Proxy, a.ERC1967Proxy, a.ERC1967Proxy];
+const payloads = [...(isV4Upgrade ? [] : [encode('MarketRegistry', 'setRegistrar', [a.ERC1967Proxy])]),
   ...activation.registrations.map(r => encode('XBIDFactory', 'registerMarketVersion', [r])),
-  encode('XBIDFactory', 'setDefaultMarketVersion', [3])];
+  encode('XBIDFactory', 'setDefaultMarketVersion', [targetVersion])];
 assert.deepEqual(activation.targets, targets); assert.deepEqual(activation.payloads, payloads);
 assert.deepEqual(activation.values.map(BigInt), targets.map(() => 0n));
 assert.equal(activation.predecessor, '0x' + '00'.repeat(32));
@@ -68,7 +73,17 @@ assert.equal(journal.manifestHash, manifestHash);
 function save() { writeFileSync(journalPath + '.tmp', json(journal) + '\n', { mode: 0o600 }); renameSync(journalPath + '.tmp', journalPath); }
 const allowed = new Set(['eth_chainId', 'eth_blockNumber', 'eth_getBlockByNumber', 'eth_getCode', 'eth_getStorageAt', 'eth_call',
   'eth_estimateGas', 'eth_gasPrice', 'eth_getBalance', 'eth_getTransactionCount', 'eth_getTransactionByHash', 'eth_getTransactionReceipt']);
-async function rpc(method, params) {
+let rpcQueue = Promise.resolve(), nextRpcAt = 0;
+function rpc(method, params) {
+  const result = rpcQueue.then(async () => {
+    await new Promise(resolve => setTimeout(resolve, Math.max(0, nextRpcAt - Date.now())));
+    nextRpcAt = Date.now() + 1000;
+    return request(method, params);
+  });
+  rpcQueue = result.catch(() => {});
+  return result;
+}
+async function request(method, params) {
   assert.ok(allowed.has(method), 'Server cannot sign or broadcast.');
   const r = await fetch('https://rpc.mainnet.arc.io', { method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: json({ jsonrpc: '2.0', id: 1, method, params }), signal: AbortSignal.timeout(25000) });
@@ -86,7 +101,7 @@ const safeRead = (fn, args = [], block = 'latest') => read(safe, safeAbi, fn, ar
 let operationId, deploymentSpent = 0n;
 async function verifyDeployments() {
   assert.equal(BigInt(await rpc('eth_chainId', [])), 5042n);
-  deploymentSpent = 0n;
+  deploymentSpent = parseUnits(draft.cost.priorSpentUsdc ?? '0', 18);
   await Promise.all(draft.transactions.map(async (tx, i) => {
     const entry = deployments.receipts[i];
     const [receipt, transaction, code] = await Promise.all([rpc('eth_getTransactionReceipt', [entry.hash]), rpc('eth_getTransactionByHash', [entry.hash]), rpc('eth_getCode', [tx.predictedAddress, 'latest'])]);
@@ -132,8 +147,14 @@ async function verifyLive() {
   ]);
   assert.equal('0x' + implSlot.slice(-40).toLowerCase(), a.XBIDFactory.toLowerCase());
   assert.equal(await factory('governanceTimelock', [], block), a.TimelockController);
-  if (timestamp === 1n) { assert.equal(versionCount, 3n); assert.equal(defaultVersion, 3); assert.equal(registrar, a.ERC1967Proxy); }
-  else { assert.equal(versionCount, 0n); assert.equal(defaultVersion, 0); assert.equal(registrar, a.TimelockController); }
+  if (timestamp === 1n) { assert.equal(versionCount, BigInt(targetVersion)); assert.equal(defaultVersion, targetVersion); assert.equal(registrar, a.ERC1967Proxy); }
+  else { assert.equal(versionCount, isV4Upgrade ? 3n : 0n); assert.equal(defaultVersion, isV4Upgrade ? 3 : 0); assert.equal(registrar, isV4Upgrade ? a.ERC1967Proxy : a.TimelockController); }
+  if (isV4Upgrade) {
+    assert.equal(await read(a.MarketVaultV4, abi('MarketVaultV4'), 'CROWN_ACTIVATION_RESERVE_UNITS', [], block), 15_000_000_000n);
+    const legacy = await registry('getVersion', [3], block);
+    const upgraded = activation.registrations[0];
+    for (const key of ['sideTokenImplementation', 'sideTokenImplementationCodeHash', 'sideTokenCloneRuntimeCodeHash', 'feeVault', 'feeVaultVersion', 'riskController', 'riskControllerVersion', 'settlementToken', 'abiVersion']) assert.equal(legacy[key], upgraded[key], key + ' changed');
+  }
   const now = BigInt(blockInfo.timestamp);
   return { block: BigInt(block).toString(), nonce: nonce.toString(), timestamp: timestamp.toString(),
     stage: timestamp === 1n ? 'done' : timestamp === 0n ? 'schedule' : timestamp > now ? 'waiting' : 'execute',
@@ -225,14 +246,14 @@ async function receipt(body) {
   const timestamp = await timelock('getTimestamp', [operationId]);
   try {
     if (body.stage === 'schedule') assert.ok(timestamp > 1n);
-    else { assert.equal(timestamp, 1n); assert.equal(await factory('defaultMarketVersion'), 3); assert.equal(await registry('versionCount'), 3n); }
+    else { assert.equal(timestamp, 1n); assert.equal(await factory('defaultMarketVersion'), targetVersion); assert.equal(await registry('versionCount'), BigInt(targetVersion)); }
     assert.equal(await safeRead('nonce'), BigInt(entry.typedData.message.nonce) + 1n);
   } catch (e) { journal.halted = '回执后状态不符：' + e.message; save(); throw e; }
   return { pending: false, receipt: item, spentUsdc: formatUnits(spent(), 18), readyAt: timestamp > 1n ? new Date(Number(timestamp) * 1000).toISOString() : null };
 }
 await verifyDeployments(); const initial = await verifyLive();
 const token = randomBytes(24).toString('hex');
-const base = 'http://127.0.0.1:3197';
+const base = `http://127.0.0.1:${port}`;
 const html = readFileSync(new URL('arc-wallet-review/governance.html', import.meta.url));
 const js = readFileSync(new URL('arc-wallet-review/governance.js', import.meta.url));
 let busy = false;
@@ -242,10 +263,11 @@ createServer(async (req, res) => {
       'Referrer-Policy': 'no-referrer', 'Content-Security-Policy': "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'" });
     res.end(Buffer.isBuffer(data) ? data : json(data));
   };
-  if (req.headers.host !== '127.0.0.1:3197') return reply(404, {});
+  if (req.headers.host !== `127.0.0.1:${port}`) return reply(404, {});
   if (req.method === 'GET' && req.url === '/') return reply(200, html, 'text/html; charset=utf-8');
   if (req.method === 'GET' && req.url === '/governance.js') return reply(200, js, 'text/javascript; charset=utf-8');
   if (req.method === 'GET' && req.url === '/state') return reply(200, { token, safe, owners, deployer: draft.deployer, operationId,
+    targetVersion, crownActivationReserveUnits: draft.crownActivationReserveUnits,
     spentUsdc: formatUnits(spent(), 18), pending: journal.pending, halted: journal.halted,
     signed: Object.fromEntries(Object.entries(journal.stages).map(([k, s]) => [k, Object.keys(s.signatures)])) });
   if (req.method !== 'POST' || !['/inspect', '/prepare', '/signature', '/quote', '/receipt'].includes(req.url)) return reply(404, {});
@@ -257,4 +279,4 @@ createServer(async (req, res) => {
     const result = await ({ '/inspect': verifyLive, '/prepare': prepare, '/signature': addSignature, '/quote': quote, '/receipt': receipt })[req.url](body);
     reply(200, result);
   } catch (e) { reply(400, { error: e.message }); } finally { busy = false; }
-}).listen(3197, '127.0.0.1', () => console.log(json({ url: base, stage: initial.stage, operationId, spentUsdc: formatUnits(spent(), 18), message: 'No signing or broadcasting on server. User must explicitly confirm each wallet action.' })));
+}).listen(port, '127.0.0.1', () => console.log(json({ url: base, stage: initial.stage, operationId, spentUsdc: formatUnits(spent(), 18), message: 'No signing or broadcasting on server. User must explicitly confirm each wallet action.' })));

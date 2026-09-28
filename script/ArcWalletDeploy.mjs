@@ -17,7 +17,15 @@ assert.equal(draft.chainId, 5042);
 assert.equal(draft.status, "UNSIGNED_DRAFT_NOT_DEPLOYED");
 assert.equal(draft.sourceDirty, false, "Regenerate from a clean committed source tree.");
 assert.equal(draft.safeProxyRuntimeOfficialHashVerified, true);
-assert.equal(draft.transactions.length, 10);
+const isV4Upgrade = draft.purpose === "ARC_MARKET_V4_15000";
+assert.equal(draft.transactions.length, isV4Upgrade ? 1 : 10);
+if (isV4Upgrade) {
+  assert.equal(draft.transactions[0].name, "MarketVaultV4");
+  assert.equal(draft.crownActivationReserveUnits, "15000000000");
+}
+const port = Number(process.argv[4] ?? 3198);
+assert.ok([3196, 3198].includes(port));
+const base = `http://127.0.0.1:${port}`;
 const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
 function verifySource() {
   assert.equal(git("rev-parse", "HEAD"), draft.sourceCommit, "Source commit changed.");
@@ -34,7 +42,10 @@ if (!existsSync(receiptPath)) save();
 const token = randomBytes(24).toString("hex");
 const rpc = "https://rpc.mainnet.arc.io";
 const allowed = new Set(["eth_chainId", "eth_getBalance", "eth_getTransactionCount", "eth_getCode", "eth_estimateGas", "eth_gasPrice", "eth_getTransactionByHash", "eth_getTransactionReceipt"]);
+let nextRpcAt = 0;
 async function read(method, params) {
+  await new Promise(resolve => setTimeout(resolve, Math.max(0, nextRpcAt - Date.now())));
+  nextRpcAt = Date.now() + 1000;
   assert.ok(allowed.has(method));
   const response = await fetch(rpc, { method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }), signal: AbortSignal.timeout(20000) });
@@ -43,7 +54,7 @@ async function read(method, params) {
   if (result.error) throw new Error(`${method}: ${JSON.stringify(result.error)}`);
   return result.result;
 }
-const spentWei = () => journal.receipts.reduce((sum, item) => sum + BigInt(item.gasUsed) * BigInt(item.effectiveGasPrice), 0n);
+const spentWei = () => journal.receipts.reduce((sum, item) => sum + BigInt(item.gasUsed) * BigInt(item.effectiveGasPrice), parseUnits(draft.cost.priorSpentUsdc ?? "0", 18));
 async function quoteNext() {
   verifySource();
   assert.equal(await read("eth_chainId", []), "0x13b2");
@@ -107,13 +118,14 @@ const server = createServer(async (req, res) => {
       "Referrer-Policy": "no-referrer", "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'" });
     res.end(Buffer.isBuffer(value) ? value : JSON.stringify(value));
   };
-  if (req.headers.host !== "127.0.0.1:3198") return reply(404, {});
+  if (req.headers.host !== `127.0.0.1:${port}`) return reply(404, {});
   if (req.method === "GET" && req.url === "/") return reply(200, html, "text/html; charset=utf-8");
   if (req.method === "GET" && req.url === "/deploy.js") return reply(200, js, "text/javascript; charset=utf-8");
   if (req.method === "GET" && req.url === "/state") return reply(200, { token, deployer: draft.deployer, sourceCommit: draft.sourceCommit,
+    purpose: draft.purpose, crownActivationReserveUnits: draft.crownActivationReserveUnits,
     completed: journal.receipts.length, pendingHash: journal.pendingHash, spentUsdc: formatUnits(spentWei(), 18), transactions: draft.transactions.map(({ order, name, predictedAddress }) => ({ order, name, predictedAddress })) });
   if (req.method !== "POST" || !["/quote", "/receipt"].includes(req.url)) return reply(404, {});
-  if (req.headers.origin !== "http://127.0.0.1:3198" || req.headers["x-xbid-token"] !== token) return reply(403, { error: "Same-origin authorization required." });
+  if (req.headers.origin !== base || req.headers["x-xbid-token"] !== token) return reply(403, { error: "Same-origin authorization required." });
   if (busy) return reply(409, { error: "A check is already running." });
   busy = true;
   try {
@@ -124,4 +136,4 @@ const server = createServer(async (req, res) => {
   } catch (error) { reply(400, { error: error.message }); }
   finally { busy = false; }
 });
-server.listen(3198, "127.0.0.1", () => console.log("Browser-wallet deployment: http://127.0.0.1:3198/ — USER must initiate and confirm each wallet transaction. Server has no signing/broadcast capability."));
+server.listen(port, "127.0.0.1", () => console.log(`Browser-wallet deployment: ${base}/ — USER must initiate and confirm each wallet transaction. Server has no signing/broadcast capability.`));

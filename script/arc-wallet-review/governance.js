@@ -32,14 +32,18 @@ async function action(fn) {
 }
 function showProposal(p) {
   proposal = p; quote = null; el('signConsent').checked = false; el('sendConsent').checked = false;
-  el('proposal').textContent = `阶段：${p.stage === 'schedule' ? '提交排队提案（等待 10 分钟）' : '执行激活（默认 V3）'}\nSafe nonce：${p.nonce}\nSafe 交易哈希：${p.hash}\n转账金额：0 USDC · Safe gas 退款：0\n目标：${p.typedData.message.to}`;
+  el('proposal').textContent = `阶段：${p.stage === 'schedule' ? '提交排队提案（等待 10 分钟）' : `执行激活（默认 V${state.targetVersion}）`}\nSafe nonce：${p.nonce}\nSafe 交易哈希：${p.hash}\n转账金额：0 USDC · Safe gas 退款：0\n目标：${p.typedData.message.to}`;
   el('typed').textContent = JSON.stringify(p.typedData, null, 2);
   el('signatures').textContent = `已验证签名 ${p.signedOwners.length}/2\n${p.signedOwners.join('\n')}`;
 }
 async function refresh() {
   state = await (await fetch('/state')).json();
+  const operations = state.targetVersion === 4
+    ? ['登记 MarketVault V4：皇冠激活储备 15,000 USDC', 'Factory 默认版本设为 V4；旧竞赛规则保持不变']
+    : ['Registry 注册入口设为 Factory', '登记 MarketVault V1', '登记 MarketVault V2', '登记 MarketVault V3', 'Factory 默认版本设为 V3'];
+  el('operations').replaceChildren(...operations.map(text => { const item = document.createElement('li'); item.textContent = text; return item; }));
   pending = state.pending || JSON.parse(sessionStorage.getItem('xbid-arc-governance-pending') || 'null');
-  el('summary').textContent = `治理 Safe：${state.safe}\n累计已花：${state.spentUsdc} USDC\n操作 ID：${state.operationId}\n治理签名人：\n${state.owners.join('\n')}`;
+  el('summary').textContent = `目标版本：V${state.targetVersion}${state.crownActivationReserveUnits ? ' · 皇冠激活储备：15,000 USDC（仅新建竞赛）' : ''}\n治理 Safe：${state.safe}\n累计已花：${state.spentUsdc} USDC\n操作 ID：${state.operationId}\n治理签名人：\n${state.owners.join('\n')}`;
   if (pending) {
     const r = await post('/receipt', pending); el('status').textContent = JSON.stringify(r, null, 2);
     if (r.pending) return;
@@ -47,7 +51,7 @@ async function refresh() {
     state = await (await fetch('/state')).json();
   }
   const live = await post('/inspect');
-  const labels = { schedule: '等待两位签名人提交排队提案', waiting: `提案已排队，还需 ${live.secondsRemaining} 秒`, execute: '等待期已结束，可单独签名并执行激活', done: '治理激活完成，默认版本 V3' };
+  const labels = { schedule: '等待两位签名人提交排队提案', waiting: `提案已排队，还需 ${live.secondsRemaining} 秒`, execute: '等待期已结束，可单独签名并执行激活', done: `治理激活完成，默认版本 V${state.targetVersion}` };
   el('status').textContent = `${labels[live.stage]}\n链上注册版本：${live.versionCount} · 默认版本：${live.defaultVersion}\n累计 gas：${state.spentUsdc} USDC${live.readyAt ? '\n可执行时间：' + new Date(live.readyAt).toLocaleString() : ''}${state.halted ? '\n停止：' + state.halted : ''}`;
   if (proposal && proposal.stage !== live.stage) clear();
 }

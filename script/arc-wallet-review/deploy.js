@@ -26,7 +26,8 @@ async function verifyWallet() {
 async function refresh() {
   state = await (await fetch("/state")).json();
   pending = pending || state.pendingHash || sessionStorage.getItem(`xbid-pending-${state.sourceCommit}`);
-  el("source").textContent = `合约源码 ${state.sourceCommit} · 已验证 ${state.completed}/10 笔 · 已花 gas ${state.spentUsdc} USDC`;
+  el("source").textContent = `合约源码 ${state.sourceCommit} · 已验证 ${state.completed}/${state.transactions.length} 笔 · 已花 gas ${state.spentUsdc} USDC`;
+  el("purpose").textContent = state.purpose === "ARC_MARKET_V4_15000" ? "本次仅部署 V4：皇冠激活储备 15,000 USDC；曲线、费用和争夺规则不变。部署后仍需治理 2/3 签名及 600 秒等待，旧竞赛不变。" : "初始主网部署：随后另行完成治理激活。";
   el("connect").disabled = !providers.size;
   if (pending) {
     el("check").disabled = true; el("send").disabled = true;
@@ -35,8 +36,8 @@ async function refresh() {
     if (!result.pending) {
       sessionStorage.removeItem(`xbid-pending-${state.sourceCommit}`); pending = null; clearQuote();
       state = await (await fetch("/state")).json();
-      el("source").textContent = `合约源码 ${state.sourceCommit} · 已验证 ${state.completed}/10 笔 · 已花 gas ${state.spentUsdc} USDC`;
-      el("check").disabled = !provider || state.completed >= 10;
+      el("source").textContent = `合约源码 ${state.sourceCommit} · 已验证 ${state.completed}/${state.transactions.length} 笔 · 已花 gas ${state.spentUsdc} USDC`;
+      el("check").disabled = !provider || state.completed >= state.transactions.length;
     }
   }
 }
@@ -47,14 +48,14 @@ el("connect").addEventListener("click", async () => {
     if (!provider) throw new Error("未找到钱包。");
     await provider.request({ method: "eth_requestAccounts" });
     el("account").textContent = `账户：${await verifyWallet()}\nArc 主网 (5042)，匹配。`;
-    clearQuote(); el("check").disabled = Boolean(pending) || state.completed >= 10;
+    clearQuote(); el("check").disabled = Boolean(pending) || state.completed >= state.transactions.length;
   } catch (error) { el("account").textContent = error.message; clearQuote(); el("check").disabled = true; }
 });
 el("check").addEventListener("click", async () => {
   clearQuote(); el("check").disabled = true; el("quote").textContent = "正在核对链、nonce、余额、已部署代码和费用…";
   try {
     await verifyWallet(); quote = await post("/quote");
-    el("quote").textContent = `第 ${quote.order}/10 笔：${quote.name}\n预计合约：${quote.address}\n本笔最大 gas 费用：${quote.maxCostUsdc} USDC\n已花 + 剩余合约缓冲：${quote.remainingContractCeilingUsdc} USDC\n调用数据哈希：${quote.dataHash}\n转账 value：0 USDC（仅支付 gas）`;
+    el("quote").textContent = `第 ${quote.order}/${state.transactions.length} 笔：${quote.name}\n预计合约：${quote.address}\n本笔最大 gas 费用：${quote.maxCostUsdc} USDC\n已花 + 剩余合约缓冲：${quote.remainingContractCeilingUsdc} USDC\n调用数据哈希：${quote.dataHash}\n转账 value：0 USDC（仅支付 gas）`;
   } catch (error) { el("quote").textContent = error.message; }
   finally { el("check").disabled = Boolean(pending); }
 });
@@ -75,7 +76,7 @@ el("send").addEventListener("click", async () => {
     el("receipt").textContent = `已提交 ${pending}。点击刷新检查回执，勿重复发送。`;
     await refresh();
   } catch (error) { el("receipt").textContent = error.message; }
-  finally { sending = false; clearQuote(); el("check").disabled = Boolean(pending) || state.completed >= 10; }
+  finally { sending = false; clearQuote(); el("check").disabled = Boolean(pending) || state.completed >= state.transactions.length; }
 });
 el("refresh").addEventListener("click", () => refresh().catch((error) => { el("receipt").textContent = error.message; }));
 refresh().then(() => {
